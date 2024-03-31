@@ -13,7 +13,7 @@ architecture behavior of proc_controller_tb is
     signal hltbar_sig : STD_LOGIC;
     signal clrbar_sig : STD_LOGIC;
     signal clkbar_out_sig : STD_LOGIC;
-    signal opcode_sig : STD_LOGIC_VECTOR(3 downto 0);
+    signal opcode_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal wbus_sel_sig : STD_LOGIC_VECTOR(2 downto 0);
     signal Cp_sig : STD_LOGIC;
     signal LMBar_sig : STD_LOGIC;
@@ -63,19 +63,19 @@ begin
         auto_sig <= '1';
         step_sig <= '0';
         clrbar_sig <= '1';
-        opcode_sig <= "0000";
+        opcode_sig <= "00000000";
 
         wait for 600 ns;
-        opcode_sig <= "0001";
+        opcode_sig <= "00000001";
         wait for 600 ns;
 
-        opcode_sig <= "0010";
+        opcode_sig <= "00000010";
         wait for 600 ns;
 
-        opcode_sig <= "1110";
+        opcode_sig <= "00001110";
         wait for 600 ns;
 
-        opcode_sig <= "1111";
+        opcode_sig <= "00001111";
         wait;
     end process;
 

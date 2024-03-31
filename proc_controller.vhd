@@ -1,36 +1,6 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 03/11/2024 10:13:16 PM
--- Design Name: 
--- Module Name: proc_controller - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 
 
 -- CONTROL WORD
@@ -56,7 +26,7 @@ entity proc_controller is
     -- inputs
     clk : in STD_LOGIC;
     clrbar : in STD_LOGIC;
-    opcode : in STD_LOGIC_VECTOR(3 downto 0);          -- 5 opcodes in model, 4 bits of instruction form the opcode
+    opcode : in STD_LOGIC_VECTOR(7 downto 0);          -- 8 bit opcodes
   
     -- outputs
     wbus_sel : out STD_LOGIC_VECTOR(2 downto 0);
