@@ -9,7 +9,7 @@ entity proc_top is
     );
     port( clk_ext : in STD_LOGIC;  -- map to FPGA clock will be stepped down to 1HZ
                                 -- for simulation TB should generate clk of 1HZ
-          addr_in : STD_LOGIC_VECTOR(3 downto 0);       -- address setting - S1 in ref
+          addr_in : STD_LOGIC_VECTOR(15 downto 0);       -- address setting - S1 in ref
           S2 : STD_LOGIC;       -- prog / run switch
           data_in : STD_LOGIC_VECTOR(7 downto 0);       -- data setting      S3 in ref
           S4 : STD_LOGIC;       -- read/write toggle   -- 1 to write values to ram. 0 to read. needs to be 0 for run mode
@@ -50,14 +50,15 @@ architecture behavior of proc_top is
     signal Su_sig : std_logic;
     signal LBBar_sig : std_logic;
     signal LOBar_sig : std_logic;
-    signal pc_data_sig : STD_LOGIC_VECTOR(3 downto 0);
+    signal pc_data_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal acc_data_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal alu_data_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal IR_operand_sig : STD_LOGIC_VECTOR(3 downto 0);
-    signal IR_opcode_sig : STD_LOGIC_VECTOR(3 downto 0);
-    signal RAM_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal w_bus_data_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal mar_addr_sig: STD_LOGIC_VECTOR(3 downto 0);
+    signal IR_addr_operand_sig : STD_LOGIC_VECTOR(15 downto 0);
+    signal IR_data_operand_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal IR_opcode_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal RAM_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
+    signal w_bus_sig : STD_LOGIC_VECTOR(15 downto 0);
+    signal mar_addr_sig: STD_LOGIC_VECTOR(15 downto 0);
     signal ram_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal b_data_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal display_data : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
@@ -75,7 +76,8 @@ architecture behavior of proc_top is
     attribute MARK_DEBUG of pc_data_sig : signal is "true";
     attribute MARK_DEBUG of mar_addr_sig : signal is "true";
     attribute MARK_DEBUG of IR_opcode_sig : signal is "true";
-    attribute MARK_DEBUG of IR_operand_sig : signal is "true";
+    attribute MARK_DEBUG of IR_addr_operand_sig : signal is "true";
+    attribute MARK_DEBUG of IR_data_operand_sig : signal is "true";
     attribute MARK_DEBUG of acc_data_sig : signal is "true";
     attribute MARK_DEBUG of b_data_sig : signal is "true";
     attribute MARK_DEBUG of output_sig : signal is "true";
@@ -136,12 +138,12 @@ begin
     w_bus : entity work.w_bus
         port map(
             sel => wbus_sel_sig,
-            pc_data_in => pc_data_sig,
+            pc_addr_in => pc_data_sig,
+            IR_addr_in => IR_addr_operand_sig,
             acc_data_in => acc_data_sig,
             alu_data_in => alu_data_sig,
-            IR_data_in => IR_operand_sig,
-            RAM_data_in => ram_data_out_sig,
-            data_out => w_bus_data_sig
+            RAM_data_in => ram_data_in_sig,
+            bus_out => w_bus_sig
         );
 
     PC : entity work.PC
