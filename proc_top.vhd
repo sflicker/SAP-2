@@ -64,6 +64,7 @@ architecture behavior of proc_top is
     signal display_data : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
     signal stage_counter_sig : INTEGER;
     signal output_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal Load_PC_Bar_sig : STD_LOGIC;
     
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -150,6 +151,7 @@ begin
         port map(
             clkbar => clkbar_sys_sig,
             clrbar => clrbar_sig,
+            Load_PC_Bar => Load_PC_Bar_sig,
             Cp => Cp_sig,
             pc_out => pc_data_sig
             );

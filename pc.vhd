@@ -8,7 +8,7 @@ entity pc is
         clkbar : in STD_LOGIC;
         clrbar : in STD_LOGIC;
         Cp : in STD_LOGIC;
-        LPBar : in STD_LOGIC;
+        Load_PC_Bar : in STD_LOGIC;
         pc_in : out STD_LOGIC_VECTOR(15 downto 0);
         pc_out : out STD_LOGIC_VECTOR(15 downto 0)
         );
@@ -27,7 +27,7 @@ begin
         elsif falling_edge(clkbar) then
             if Cp = '1' then
                 internal_value := STD_LOGIC_VECTOR(unsigned(internal_value) + 1);
-            elsif LPBar = '0' then
+            elsif Load_PC_Bar = '0' then
                 internal_value := pc_in;
             end if;
         end if;

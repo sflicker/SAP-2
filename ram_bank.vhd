@@ -34,7 +34,7 @@ architecture Behavioral of ram_bank is
 begin
     -- dont use clock for ram
 
-    process(addr, write_enable)
+    process(addr, write_enable, data_in)
     begin
         if write_enable = '1' then
             RAM(to_integer(unsigned(addr))) <= data_in;
