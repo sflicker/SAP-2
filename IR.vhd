@@ -35,24 +35,22 @@ entity IR is
     Port ( clk : in STD_LOGIC;
            clr : in STD_LOGIC;
            ir_in : in STD_LOGIC_VECTOR(7 downto 0);
-           LIBar : in STD_LOGIC;
-           opcode_out : out STD_LOGIC_VECTOR(3 downto 0);
-           operand_out : out STD_LOGIC_VECTOR(3 downto 0)
+           Load_IR_OPCODE_Bar : in STD_LOGIC;
+           opcode_out : out STD_LOGIC_VECTOR(7 downto 0);
            );
 end IR;
 
 architecture Behavioral of IR is
     
 begin
-    process(clk)
-        variable internal_data : std_logic_vector(7 downto 0);
+    process(clr, clk)
     begin
         if clr = '1' then
-            opcode_out <= "0000";
-        elsif rising_edge(clk) and LIBar = '0' then
-            internal_data := ir_in;
-            opcode_out <= internal_data(7 downto 4);
-            operand_out <= internal_data(3 downto 0);
+            opcode_out <= "00000000";
+        elsif rising_edge(clk) then
+            if Load_IR_OPCODE_Bar = '0' then
+                opcode_out <= ir_in;
+            end if;
         end if;
     end process;
     
