@@ -31,12 +31,12 @@ entity proc_controller is
     -- outputs
     wbus_sel : out STD_LOGIC_VECTOR(2 downto 0);
     Cp  : out STD_LOGIC;                          -- increment program counter by one
-    LMBar : out STD_LOGIC;                        -- Load MAR register from WBus - enable low
-    LIBar : out STD_LOGIC;                        -- LOAD IR register from WBus - enable low
-    LABar : out STD_LOGIC;                        -- LOAD Accumulator register from WBus -- enable low
+    load_MAR_bar : out STD_LOGIC;                        -- Load MAR register from WBus - enable low
+    load_IR_opcode_bar : out STD_LOGIC;                        -- LOAD IR register from WBus - enable low
+    load_acc_bar : out STD_LOGIC;                        -- LOAD Accumulator register from WBus -- enable low
     Su : out STD_LOGIC;                           -- operation for ALU. 0 - ADD, 1 - Subtract
-    LBBar : out STD_LOGIC;                        -- LOAD B register from WBus - eanble low
-    LOBar : out STD_LOGIC;
+    load_B_bar : out STD_LOGIC;                        -- LOAD B register from WBus - eanble low
+    load_OUT_bar : out STD_LOGIC;
     HLTBar : out STD_LOGIC;
     stage_out : out integer
     );
@@ -135,12 +135,12 @@ begin
                     control_word_index_signal <= control_word_index;
                     wbus_sel <= control_word(0 to 2);
                     Cp <= control_word(3);
-                    LMBar <= control_word(4);
-                    LIBar <= control_word(5);
-                    LABar <= control_word(6);
+                    load_MAR_bar <= control_word(4);
+                    load_IR_opcode_bar <= control_word(5);
+                    load_acc_bar <= control_word(6);
                     Su <= control_word(7);
-                    LBBar <= control_word(8);
-                    LOBar <= control_word(9);
+                    load_B_bar <= control_word(8);
+                    load_OUT_bar <= control_word(9);
 
 --                    stage_counter <= stage;
         

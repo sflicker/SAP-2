@@ -6,7 +6,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity output is
     Port ( clk : in STD_LOGIC;
     clr : in STD_LOGIC;
-    LOBar : in STD_LOGIC;
+    load_OUT_bar : in STD_LOGIC;
     output_in : in STD_LOGIC_VECTOR(7 downto 0);
     output_out : out STD_LOGIC_VECTOR(7 downto 0)
     );
@@ -19,7 +19,7 @@ begin
         begin
         if clr = '1' then
             internal_data := "00000000";
-        elsif rising_edge(clk) and LOBar = '0' then
+        elsif rising_edge(clk) and load_OUT_bar = '0' then
             internal_data := output_in;
         end if;
     output_out <= internal_data;

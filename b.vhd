@@ -33,7 +33,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity B is
     Port ( clk : in STD_LOGIC;
-           LBBar : in STD_LOGIC;
+           load_b_bar : in STD_LOGIC;
            b_in : in STD_LOGIC_VECTOR(7 downto 0);
            b_out : out STD_LOGIC_VECTOR(7 downto 0)
            );
@@ -44,7 +44,7 @@ architecture Behavioral of B is
     process(clk)
         variable internal_data : STD_LOGIC_VECTOR(7 downto 0) := "00000000";
         begin
-        if rising_edge(clk) and LBBar = '0' then
+        if rising_edge(clk) and load_B_bar = '0' then
             internal_data := b_in;
         end if;
     b_out <= internal_data;

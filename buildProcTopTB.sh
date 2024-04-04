@@ -26,6 +26,7 @@ ghdl -a --std=08 -fsynopsys -v ALU.vhd
 ghdl -a --std=08 -fsynopsys -v b.vhd
 #ghdl -a --std=08 -fsynopsys -v controller_rom.vhd
 ghdl -a --std=08 -fsynopsys -v IR.vhd
+ghdl -a --std=08 -fsynopsys -v IR_operand_latch.vhd
 ghdl -a --std=08 -fsynopsys -v mar.vhd
 ghdl -a --std=08 -fsynopsys -v pc.vhd
 ghdl -a --std=08 -fsynopsys -v output.vhd

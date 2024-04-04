@@ -50,7 +50,7 @@ signal run_mode : STD_LOGIC;
 signal run_toggle : STD_LOGIC;
 signal pulse : STD_LOGIC;
 signal hltbar_sig : STD_LOGIC;
-signal addr_sig : STD_LOGIC_VECTOR(3 downto 0);
+signal addr_sig : STD_LOGIC_VECTOR(15 downto 0);
 signal data_sig : STD_LOGIC_VECTOR(7 downto 0);
 signal S2_sig : STD_LOGIC;
 signal S4_sig : STD_LOGIC;

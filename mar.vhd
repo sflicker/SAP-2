@@ -6,7 +6,7 @@ entity MAR is
     Port (
         clk : in STD_LOGIC;
         clr : in STD_LOGIC;
-        LMBar : in STD_LOGIC;
+        load_MAR_bar : in STD_LOGIC;
         mar_in : in STD_LOGIC_VECTOR(15 downto 0);
         mar_out : out STD_LOGIC_VECTOR(15 downto 0)
     );
@@ -20,7 +20,7 @@ begin
     begin
         if clr = '1' then
             internal_data := "0000000000000000";
-        elsif rising_edge(clk) and LMBar = '0' then
+        elsif rising_edge(clk) and load_MAR_bar = '0' then
             internal_data := mar_in;
         end if;
         mar_out <= internal_data;

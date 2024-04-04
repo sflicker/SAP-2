@@ -44,19 +44,19 @@ architecture behavior of proc_top is
     signal clrbar_sig : STD_LOGIC;
     signal wbus_sel_sig : STD_LOGIC_VECTOR(2 downto 0);       
     signal Cp_sig : STD_LOGIC;
-    signal LMBar_sig : STD_LOGIC;
-    signal LIBAR_sig : STD_LOGIC;
-    signal LABAR_sig : std_logic;
+    --signal LMBar_sig : STD_LOGIC;
+    --signal LIBAR_sig : STD_LOGIC;
+    signal load_accumulator_bar_sig : std_logic;
     signal Su_sig : std_logic;
-    signal LBBar_sig : std_logic;
-    signal LOBar_sig : std_logic;
+    --signal LBBar_sig : std_logic;
+    --signal LOBar_sig : std_logic;
     signal pc_data_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal acc_data_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal alu_data_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal IR_addr_operand_sig : STD_LOGIC_VECTOR(15 downto 0);
-    signal IR_data_operand_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal IR_operand_sig : STD_LOGIC_VECTOR(15 downto 0);
+--    signal IR_data_operand_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal IR_opcode_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal RAM_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
+    signal RAM_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal w_bus_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal mar_addr_sig: STD_LOGIC_VECTOR(15 downto 0);
     signal ram_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
@@ -64,8 +64,18 @@ architecture behavior of proc_top is
     signal display_data : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
     signal stage_counter_sig : INTEGER;
     signal output_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal Load_PC_Bar_sig : STD_LOGIC;
-    
+    signal load_PC_bar_sig : STD_LOGIC;
+    signal load_IR_operand_low_bar_sig : STD_LOGIC;
+    signal load_IR_operand_high_bar_sig : STD_LOGIC;
+    signal operand_low_out_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal operand_high_out_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal ram_write_enable_sig : STD_LOGIC;
+    signal load_IR_opcode_bar_sig : STD_LOGIC;
+    signal load_acc_bar_sig : STD_LOGIC;
+    signal load_MAR_bar_sig : STD_LOGIC;
+    signal load_B_bar_sig: STD_LOGIC;
+    signal load_OUT_bar_sig : STD_LOGIC;
+
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
     attribute MARK_DEBUG of clkbar_sys_sig : signal is "true";
@@ -77,8 +87,8 @@ architecture behavior of proc_top is
     attribute MARK_DEBUG of pc_data_sig : signal is "true";
     attribute MARK_DEBUG of mar_addr_sig : signal is "true";
     attribute MARK_DEBUG of IR_opcode_sig : signal is "true";
-    attribute MARK_DEBUG of IR_addr_operand_sig : signal is "true";
-    attribute MARK_DEBUG of IR_data_operand_sig : signal is "true";
+    attribute MARK_DEBUG of IR_operand_sig : signal is "true";
+--    attribute MARK_DEBUG of IR_operand_sig : signal is "true";
     attribute MARK_DEBUG of acc_data_sig : signal is "true";
     attribute MARK_DEBUG of b_data_sig : signal is "true";
     attribute MARK_DEBUG of output_sig : signal is "true";
@@ -140,7 +150,7 @@ begin
         port map(
             sel => wbus_sel_sig,
             pc_addr_in => pc_data_sig,
-            IR_addr_in => IR_addr_operand_sig,
+            IR_operand_in => IR_operand_sig,
             acc_data_in => acc_data_sig,
             alu_data_in => alu_data_sig,
             RAM_data_in => ram_data_in_sig,
@@ -160,8 +170,8 @@ begin
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            LMBar => LMBar_sig,
-            mar_in => w_bus_data_sig(3 downto 0),
+            load_MAR_bar => load_MAR_bar_sig,
+            mar_in => w_bus_sig,
             mar_out => mar_addr_sig
             );
             
@@ -169,20 +179,29 @@ begin
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            LIBar => LIBar_sig,
-            ir_in => w_bus_data_sig,
-            opcode_out=> IR_opcode_sig,
-            operand_out => IR_operand_sig
-        
+            load_IR_opcode_bar => load_IR_opcode_bar_sig,
+            ir_in => w_bus_sig(7 downto 0),
+            opcode_out => IR_opcode_sig        
         );
+
+    IR_Operand : entity work.IR_operand_latch
+            port map(
+                clk => clk_sys_sig,
+                clr => clr_sig,
+                ir_operand_in => w_bus_sig(7 downto 0),
+                load_IR_operand_low_bar => load_IR_operand_low_bar_sig,
+                load_IR_operand_high_bar => load_IR_operand_high_bar_sig,
+                operand_low_out => operand_low_out_sig,
+                operand_high_out => operand_high_out_sig
+            );
 
     ram_bank : entity work.ram_bank
         port map(
             clk => clk_sys_sig,
             addr => mar_addr_sig,
-            ram_data_in => ram_data_in_sig,
-            LBar => LBBar_sig,
-            ram_data_out => ram_data_out_sig
+            data_in => ram_data_in_sig,
+            write_enable => ram_write_enable_sig,
+            data_out => ram_data_out_sig
         );
 
     proc_controller : entity work.proc_controller
@@ -192,12 +211,12 @@ begin
             opcode => IR_opcode_sig,
             wbus_sel => wbus_sel_sig,
             Cp => Cp_sig,
-            LMBar => LMBar_sig,
-            LIBar => LIBar_sig,
-            LABar => LABar_sig,
+            load_MAR_bar => load_MAR_bar_sig,
+            load_IR_opcode_bar => load_IR_opcode_bar_sig,
+            load_acc_bar => load_acc_bar_sig,
             Su => Su_sig,
-            LBBar => LBBar_sig,
-            LOBar => LOBar_sig,
+            load_B_bar => load_B_bar_sig,
+            load_OUT_bar => load_OUT_bar_sig,
             hltbar => hltbar_sig,
             stage_out => stage_counter_sig
         );
@@ -205,16 +224,18 @@ begin
       acc: entity work.accumulator
         Port map(
             clk => clk_sys_sig,
-            LABar => LABar_sig,
-            acc_in => w_bus_data_sig,
-            acc_out => acc_data_sig
+            load_acc_bar => load_acc_bar_sig,
+            acc_in => w_bus_sig(7 downto 0),
+            acc_out => acc_data_sig,
+            zero_flag => open,
+            minus_flag => open
             ); 
         
       B : entity work.B
         port map (
             clk => clk_sys_sig,
-            LBBar => LBBar_sig,
-            b_in => w_bus_data_sig,
+            load_b_bar => load_b_bar_sig,
+            b_in => w_bus_sig(7 downto 0),
             b_out => b_data_sig
         );
         
@@ -230,13 +251,13 @@ begin
             port map (
                 clk => clk_sys_sig,
                 clr => clr_sig,
-                LOBar => LOBar_sig,
-                output_in => w_bus_data_sig,
+                load_OUT_bar => load_OUT_bar_sig,
+                output_in => w_bus_sig(7 downto 0),
                 output_out => output_sig
             );
         
-    display_data <= ("00000000" & output_sig) when not running else
-                    ("0000" & pc_data_sig & IR_opcode_sig & IR_operand_sig) when running;
+    -- display_data <= ("00000000" & output_sig) when not running else
+    --                 ("0000" & pc_data_sig & IR_opcode_sig & IR_operand_sig) when running;
     -- TODO use a multiplexer so different types of output can be used on the seven segment displays
 --    display_data(7 downto 4) <= IR_opcode_sig when running;
 --    display_data(3 downto 0) <= IR_operand_sig when running;
