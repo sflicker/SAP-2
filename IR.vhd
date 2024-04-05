@@ -46,9 +46,9 @@ begin
     process(clr, clk)
     begin
         if clr = '1' then
-            opcode_out <= "00000000";
+            opcode_out <= (others => '0');
         elsif rising_edge(clk) then
-            if Load_IR_OPCODE_Bar = '0' then
+            if enable_write = '1' then
                 opcode_out <= ir_in;
             end if;
         end if;

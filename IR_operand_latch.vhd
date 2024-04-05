@@ -26,9 +26,9 @@ begin
             operand_low_out <= "00000000";
             operand_high_out <= "00000000";
         elsif clk = '1' then
-            if Load_IR_OPERAND_LOW_Bar = '0' then
+            if enable_write_low = '1' then
                 operand_low_out <= ir_operand_in;
-            elsif LOAD_IR_OPERAND_HIGH_Bar = '0' then
+            elsif enable_write_high = '1' then
                 operand_high_out <= ir_operand_in;
             end if;
         end if;

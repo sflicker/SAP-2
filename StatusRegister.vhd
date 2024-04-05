@@ -17,8 +17,9 @@ entity StatusRegister is
         equal_flag_out : in STD_LOGIC;
         status_flags_we : in STD_LOGIC;
         status_flags_in : in STD_LOGIC_VECTOR(7 downto 0);
-        status_flags_out : in STD_LOGIC_VECTOR(7 downto 0);
+        status_flags_out : in STD_LOGIC_VECTOR(7 downto 0)
     );
+end StatusRegister;
 
 architecture behavior of StatusRegister is
     signal minus_flag : STD_LOGIC;
@@ -26,7 +27,7 @@ architecture behavior of StatusRegister is
     signal status_flags : STD_LOGIC_VECTOR(1 downto 0);
 begin
     process(clk) 
-        variable status_flag_var : STD_LOGIC := '0';
+        variable equal_flag_var : STD_LOGIC := '0';
         variable minus_flag_var : STD_LOGIC := '0';
     begin
         if rising_edge(clk) then

@@ -33,18 +33,18 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity ALU is
-    Port ( Op : in STD_LOGIC;
+    Port ( op : in STD_LOGIC;
            input_1 : in STD_LOGIC_VECTOR(7 downto 0);
            input_2 : in STD_LOGIC_VECTOR(7 downto 0);
            alu_out : out STD_LOGIC_VECTOR(7 downto 0);
            minus_flag : out STD_LOGIC;
-           equal_flag : out STD_LOGIC;
+           equal_flag : out STD_LOGIC
     );
 end ALU;
 
 architecture Behavioral of ALU is
 begin
-    alu_out <= std_logic_vector(unsigned(a) + unsigned(b)) when Su = '0' else
-              std_logic_vector(unsigned(a) - unsigned(b)) when Su = '1' else
+    alu_out <= std_logic_vector(unsigned(input_1) + unsigned(input_2)) when op = '0' else
+              std_logic_vector(unsigned(input_1) - unsigned(input_2)) when op = '1' else
               (others => '0');
 end Behavioral;

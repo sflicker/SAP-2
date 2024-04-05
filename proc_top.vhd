@@ -70,11 +70,14 @@ architecture behavior of proc_top is
     signal operand_low_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal operand_high_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal ram_write_enable_sig : STD_LOGIC;
-    signal enable_write_ir_opcode_sig : STD_LOGIC;
+    --signal enable_write_ir_opcode_sig : STD_LOGIC;
     signal enable_write_acc_sig : STD_LOGIC;
     signal load_MAR_bar_sig : STD_LOGIC;
     signal enable_write_B_sig: STD_LOGIC;
+    signal enable_write_C_sig : STD_LOGIC;
     signal enable_write_output_sig : STD_LOGIC;
+    signal pc_data_in_sig : STD_LOGIC_VECTOR(15 downto 0);
+    signal pc_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -168,22 +171,22 @@ begin
             data_out => pc_data_out_sig
         );
 
-    MAR : entity work.Register
+    MAR : entity work.DataRegister
         Generic Map(16)
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            enable_write => load_MAR_bar_sig,
+            write_enable => load_MAR_bar_sig,
             data_in => w_bus_sig,
             data_out => mar_addr_sig
             );
             
-    IR : entity work.Register
+    IR : entity work.DataRegister
         generic map(8)
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            enable_write => enable_write_ir_opcode_sig,
+            write_enable => enable_write_ir_opcode_sig,
             data_in => w_bus_sig(7 downto 0),
             data_out => IR_opcode_sig        
         );
@@ -225,14 +228,14 @@ begin
             stage_out => stage_counter_sig
         );
         
-    acc : entity.register 
+    acc : entity work.DataRegister 
         Generic Map(8)
         Port Map (
             clk => clk_sys_sig,
             rst => rst,
             write_enable => enable_write_acc_sig,
             data_in => w_bus_sig(7 downto 0),
-            data_out => acc_data_sig,
+            data_out => acc_data_sig
         ); 
 
     --   acc: entity work.accumulator
@@ -245,7 +248,7 @@ begin
     --         minus_flag => open
     --         ); 
 
-    B : entity.register 
+    B : entity work.DataRegister 
     Generic Map(8)
     Port Map (
         clk => clk_sys_sig,
@@ -256,18 +259,18 @@ begin
     );
 
 
-    C : entity.register 
+    C : entity work.DataRegister 
     Generic Map(8)
     Port Map (
         clk => clk_sys_sig,
         rst => rst,
-        enable_write => load_C_bar_sig,
+        enable_write => enable_write_C_sig,
         data_in => w_bus_sig(7 downto 0),
         data_out => c_data_sig
     );
 
 
-    TMP : entity.register 
+    TMP : entity work.DataRegister 
     Generic Map(8)
     Port Map (
         clk => clk_sys_sig,
@@ -290,12 +293,12 @@ begin
             op => Su_sig,
             input_1 => acc_data_sig,
             input_2 => tmp_data_sig,
-            out => alu_data_sig,
+            alu_out => alu_data_sig,
             minus_flag => minus_flag_sig,
             equal_flag => equal_flag_sig
             );
 
-    OUTPUT_REG : entity work.register
+    OUTPUT_REG : entity work.DataRegister
     Generic Map(8)
     port map (
         clk => clk_sys_sig,

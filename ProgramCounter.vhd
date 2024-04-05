@@ -5,8 +5,8 @@ use IEEE.numeric_std.ALL;
 -- 16 bit program counter 
 entity ProgramCounter is
     generic (
-        WIDTH : integer := 16;
-    )
+        WIDTH : integer := 16
+    );
     Port ( 
         clkbar : in STD_LOGIC;
         clr : in STD_LOGIC;
@@ -14,9 +14,9 @@ entity ProgramCounter is
         enable_write : in STD_LOGIC;
         data_in : in STD_LOGIC_VECTOR(WIDTH-1 downto 0);
         data_out : out STD_LOGIC_VECTOR(WIDTH-1 downto 0)
-        );
+    );
    
-end pc;
+end ProgramCounter;
 
 architecture Behavioral of ProgramCounter is
     -- signal internal_value : STD_LOGIC_VECTOR(3 downto 0) := "0000";
