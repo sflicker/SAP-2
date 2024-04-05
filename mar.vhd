@@ -6,7 +6,7 @@ entity MAR is
     Port (
         clk : in STD_LOGIC;
         clr : in STD_LOGIC;
-        load_MAR_bar : in STD_LOGIC;
+        enable_write : in STD_LOGIC;
         mar_in : in STD_LOGIC_VECTOR(15 downto 0);
         mar_out : out STD_LOGIC_VECTOR(15 downto 0)
     );

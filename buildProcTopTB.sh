@@ -20,10 +20,11 @@ ghdl -a --std=08 -fsynopsys -v display_controller.vhd
 
 #ghdl -a --std=08 -fsynopsys -v ring_counter_6bit.vhd
 
-ghdl -a --std=08 -fsynopsys -v accumulator.vhd
+ghdl -a --std=08 -fsynopsys -v register.vhd
+#ghdl -a --std=08 -fsynopsys -v accumulator.vhd
 #ghdl -a --std=08 -fsynopsys -v address_rom.vhd
 ghdl -a --std=08 -fsynopsys -v ALU.vhd
-ghdl -a --std=08 -fsynopsys -v b.vhd
+#ghdl -a --std=08 -fsynopsys -v b.vhd
 #ghdl -a --std=08 -fsynopsys -v controller_rom.vhd
 ghdl -a --std=08 -fsynopsys -v IR.vhd
 ghdl -a --std=08 -fsynopsys -v IR_operand_latch.vhd

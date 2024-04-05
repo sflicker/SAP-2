@@ -35,7 +35,7 @@ entity IR is
     Port ( clk : in STD_LOGIC;
            clr : in STD_LOGIC;
            ir_in : in STD_LOGIC_VECTOR(7 downto 0);
-           Load_IR_Opcode_Bar : in STD_LOGIC;
+           enable_write : in STD_LOGIC;
            opcode_out : out STD_LOGIC_VECTOR(7 downto 0)
            );
 end IR;

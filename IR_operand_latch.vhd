@@ -8,8 +8,8 @@ entity IR_operand_latch is
         clk : in STD_LOGIC;
         clr : in STD_LOGIC;
         ir_operand_in : in STD_LOGIC_VECTOR(7 downto 0);
-        Load_IR_Operand_Low_Bar : in STD_LOGIC;
-        Load_IR_Operand_High_Bar : in STD_LOGIC;
+        enable_write_low : in STD_LOGIC;
+        enable_write_high : in STD_LOGIC;
         operand_low_out : out STD_LOGIC_VECTOR(7 downto 0);
         operand_high_out : out STD_LOGIC_VECTOR(7 downto 0)
     );

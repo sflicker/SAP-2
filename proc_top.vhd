@@ -46,7 +46,7 @@ architecture behavior of proc_top is
     signal Cp_sig : STD_LOGIC;
     --signal LMBar_sig : STD_LOGIC;
     --signal LIBAR_sig : STD_LOGIC;
-    signal load_accumulator_bar_sig : std_logic;
+--    signal load_accumulator_bar_sig : std_logic;
     signal Su_sig : std_logic;
     --signal LBBar_sig : std_logic;
     --signal LOBar_sig : std_logic;
@@ -64,17 +64,17 @@ architecture behavior of proc_top is
     signal display_data : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
     signal stage_counter_sig : INTEGER;
     signal output_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal load_PC_bar_sig : STD_LOGIC;
-    signal load_IR_operand_low_bar_sig : STD_LOGIC;
-    signal load_IR_operand_high_bar_sig : STD_LOGIC;
+    signal enable_write_PC_sig : STD_LOGIC;
+    signal enable_write_ir_opcode_sig : STD_LOGIC;
+    signal enable_write_high_sig : STD_LOGIC;
     signal operand_low_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal operand_high_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal ram_write_enable_sig : STD_LOGIC;
-    signal load_IR_opcode_bar_sig : STD_LOGIC;
-    signal load_acc_bar_sig : STD_LOGIC;
+    signal enable_write_ir_opcode_sig : STD_LOGIC;
+    signal enable_write_acc_sig : STD_LOGIC;
     signal load_MAR_bar_sig : STD_LOGIC;
-    signal load_B_bar_sig: STD_LOGIC;
-    signal load_OUT_bar_sig : STD_LOGIC;
+    signal enable_write_B_sig: STD_LOGIC;
+    signal enable_write_output_sig : STD_LOGIC;
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -104,7 +104,7 @@ begin
     clear_out <= S5_clear_start;
     step_out <= S6_step; 
      
-    phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
+   -- phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
     
     GENERATING_CLOCK_CONVERTER:
         if SIMULATION_MODE
@@ -157,31 +157,35 @@ begin
             bus_out => w_bus_sig
         );
 
-    PC : entity work.PC
+    PC : entity work.ProgramCounter
+        Generic Map(16)
         port map(
             clkbar => clkbar_sys_sig,
             clrbar => clrbar_sig,
-            Load_PC_Bar => Load_PC_Bar_sig,
-            Cp => Cp_sig,
-            pc_out => pc_data_sig
-            );
+            Load_PC_Bar => enable_write_PC_sig,
+            increment => Cp_sig,
+            data_in => pc_data_in_sig,
+            data_out => pc_data_out_sig
+        );
 
-    MAR : entity work.MAR
+    MAR : entity work.Register
+        Generic Map(16)
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            load_MAR_bar => load_MAR_bar_sig,
-            mar_in => w_bus_sig,
-            mar_out => mar_addr_sig
+            enable_write => load_MAR_bar_sig,
+            data_in => w_bus_sig,
+            data_out => mar_addr_sig
             );
             
-    IR : entity work.IR
+    IR : entity work.Register
+        generic map(8)
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            load_IR_opcode_bar => load_IR_opcode_bar_sig,
-            ir_in => w_bus_sig(7 downto 0),
-            opcode_out => IR_opcode_sig        
+            enable_write => enable_write_ir_opcode_sig,
+            data_in => w_bus_sig(7 downto 0),
+            data_out => IR_opcode_sig        
         );
 
     IR_Operand : entity work.IR_operand_latch
@@ -189,8 +193,8 @@ begin
                 clk => clk_sys_sig,
                 clr => clr_sig,
                 ir_operand_in => w_bus_sig(7 downto 0),
-                load_IR_operand_low_bar => load_IR_operand_low_bar_sig,
-                load_IR_operand_high_bar => load_IR_operand_high_bar_sig,
+                load_IR_operand_low_bar => enable_write_ir_opcode_sig,
+                load_IR_operand_high_bar => enable_write_high_sig,
                 operand_low_out => operand_low_out_sig,
                 operand_high_out => operand_high_out_sig
             );
@@ -212,49 +216,103 @@ begin
             wbus_sel => wbus_sel_sig,
             Cp => Cp_sig,
             load_MAR_bar => load_MAR_bar_sig,
-            load_IR_opcode_bar => load_IR_opcode_bar_sig,
-            load_acc_bar => load_acc_bar_sig,
+            load_IR_opcode_bar => enable_write_ir_opcode_sig,
+            load_acc_bar => enable_write_acc_sig,
             Su => Su_sig,
-            load_B_bar => load_B_bar_sig,
-            load_OUT_bar => load_OUT_bar_sig,
+            load_B_bar => enable_write_B_sig,
+            load_OUT_bar => enable_write_output_sig,
             hltbar => hltbar_sig,
             stage_out => stage_counter_sig
         );
         
-      acc: entity work.accumulator
-        Port map(
+    acc : entity.register 
+        Generic Map(8)
+        Port Map (
             clk => clk_sys_sig,
-            load_acc_bar => load_acc_bar_sig,
-            acc_in => w_bus_sig(7 downto 0),
-            acc_out => acc_data_sig,
-            zero_flag => open,
-            minus_flag => open
-            ); 
-        
-      B : entity work.B
-        port map (
-            clk => clk_sys_sig,
-            load_b_bar => load_b_bar_sig,
-            b_in => w_bus_sig(7 downto 0),
-            b_out => b_data_sig
-        );
+            rst => rst,
+            write_enable => enable_write_acc_sig,
+            data_in => w_bus_sig(7 downto 0),
+            data_out => acc_data_sig,
+        ); 
+
+    --   acc: entity work.accumulator
+    --     Port map(
+    --         clk => clk_sys_sig,
+    --         load_acc_bar => load_acc_bar_sig,
+    --         acc_in => w_bus_sig(7 downto 0),
+    --         acc_out => acc_data_sig,
+    --         zero_flag => open,
+    --         minus_flag => open
+    --         ); 
+
+    B : entity.register 
+    Generic Map(8)
+    Port Map (
+        clk => clk_sys_sig,
+        rst => rst,
+        enable_write => enable_write_B_sig,
+        data_in => w_bus_sig(7 downto 0),
+        data_out => b_data_sig
+    );
+
+
+    C : entity.register 
+    Generic Map(8)
+    Port Map (
+        clk => clk_sys_sig,
+        rst => rst,
+        enable_write => load_C_bar_sig,
+        data_in => w_bus_sig(7 downto 0),
+        data_out => c_data_sig
+    );
+
+
+    TMP : entity.register 
+    Generic Map(8)
+    Port Map (
+        clk => clk_sys_sig,
+        rst => rst,
+        enable_write => enable_write_tmp_sig,
+        data_in => w_bus_sig(7 downto 0),
+        data_out => tmp_data_sig
+    );
+
+    --   B : entity work.B
+    --     port map (
+    --         clk => clk_sys_sig,
+    --         load_b_bar => enable_write_B_sig,
+    --         b_in => w_bus_sig(7 downto 0),
+    --         b_out => b_data_sig
+    --     );
         
       ALU : entity work.ALU
         port map (
-            Su => Su_sig,
-            a => acc_data_sig,
-            b => b_data_sig,
-            alu_out => alu_data_sig
+            op => Su_sig,
+            input_1 => acc_data_sig,
+            input_2 => tmp_data_sig,
+            out => alu_data_sig,
+            minus_flag => minus_flag_sig,
+            equal_flag => equal_flag_sig
             );
 
-    OUTPUT_REG : entity work.output
-            port map (
-                clk => clk_sys_sig,
-                clr => clr_sig,
-                load_OUT_bar => load_OUT_bar_sig,
-                output_in => w_bus_sig(7 downto 0),
-                output_out => output_sig
-            );
+    OUTPUT_REG : entity work.register
+    Generic Map(8)
+    port map (
+        clk => clk_sys_sig,
+        clr => clr_sig,
+        enable_write => enable_write_output_sig,
+        data_in => w_bus_sig(7 downto 0),
+        data_out => output_sig
+    );
+
+    -- OUTPUT_REG : entity work.output
+    --         port map (
+    --             clk => clk_sys_sig,
+    --             clr => clr_sig,
+    --             load_OUT_bar => enable_write_output_sig,
+    --             output_in => w_bus_sig(7 downto 0),
+    --             output_out => output_sig
+    --         );
         
     -- display_data <= ("00000000" & output_sig) when not running else
     --                 ("0000" & pc_data_sig & IR_opcode_sig & IR_operand_sig) when running;
