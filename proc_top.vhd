@@ -304,6 +304,16 @@ begin
             equal_flag => equal_flag_sig
             );
 
+        ALU_OUT : entity work.DataRegister
+            port map (
+                clk => clk_sys_sig,
+                clr => clr_sig,
+                write_enable => write_enable_alu_out_sig,
+                data_in => alu_data_out,
+                data_
+            )
+
+
     OUTPUT_REG : entity work.DataRegister
     Generic Map(8)
     port map (
