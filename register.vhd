@@ -7,7 +7,7 @@ entity DataRegister is
     );
     Port (
         clk : in STD_LOGIC;
-        rst : in STD_LOGIC;
+        clr : in STD_LOGIC;
         write_enable : in STD_LOGIC;
         data_in : in STD_LOGIC_VECTOR(WIDTH-1 downto 0);
         data_out : out STD_LOGIC_VECTOR(WIDTH-1 downto 0)
@@ -22,7 +22,7 @@ begin
         := (others => '0');
     begin
         if rising_edge(clk) then
-            if rst = '1' then
+            if clr = '1' then
                 internal_data := (others => '0');
             elsif write_enable = '1' then
                 internal_data := data_in;

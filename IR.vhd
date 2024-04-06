@@ -34,8 +34,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity IR is
     Port ( clk : in STD_LOGIC;
            clr : in STD_LOGIC;
-           ir_in : in STD_LOGIC_VECTOR(7 downto 0);
-           enable_write : in STD_LOGIC;
+           opcode_in : in STD_LOGIC_VECTOR(7 downto 0);
+           write_enable : in STD_LOGIC;
            opcode_out : out STD_LOGIC_VECTOR(7 downto 0)
            );
 end IR;
@@ -48,8 +48,8 @@ begin
         if clr = '1' then
             opcode_out <= (others => '0');
         elsif rising_edge(clk) then
-            if enable_write = '1' then
-                opcode_out <= ir_in;
+            if write_enable = '1' then
+                opcode_out <= opcode_in;
             end if;
         end if;
     end process;

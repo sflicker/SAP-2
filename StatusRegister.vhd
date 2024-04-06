@@ -8,7 +8,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity StatusRegister is
     Port (
         clk : in STD_LOGIC;
-        rst : in STD_LOGIC;
+        clr : in STD_LOGIC;
         minus_flag_we : in STD_LOGIC;
         minus_flag_in : in STD_LOGIC;
         minus_flag_out : out STD_LOGIC;
@@ -31,7 +31,7 @@ begin
         variable minus_flag_var : STD_LOGIC := '0';
     begin
         if rising_edge(clk) then
-            if rst = '1' then
+            if clr = '1' then
                 minus_flag_var := '0';
                 equal_flag_var := '0';
             end if;

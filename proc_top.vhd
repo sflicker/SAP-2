@@ -61,23 +61,29 @@ architecture behavior of proc_top is
     signal mar_addr_sig: STD_LOGIC_VECTOR(15 downto 0);
     signal ram_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal b_data_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal c_data_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal tmp_data_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal display_data : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
     signal stage_counter_sig : INTEGER;
     signal output_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal enable_write_PC_sig : STD_LOGIC;
-    signal enable_write_ir_opcode_sig : STD_LOGIC;
-    signal enable_write_high_sig : STD_LOGIC;
+    signal write_enable_PC_sig : STD_LOGIC;
+    signal write_enable_ir_opcode_sig : STD_LOGIC;
+    signal write_enable_low_sig : STD_LOGIC;
+    signal write_enable_high_sig : STD_LOGIC;
     signal operand_low_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal operand_high_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal ram_write_enable_sig : STD_LOGIC;
     --signal enable_write_ir_opcode_sig : STD_LOGIC;
-    signal enable_write_acc_sig : STD_LOGIC;
-    signal load_MAR_bar_sig : STD_LOGIC;
-    signal enable_write_B_sig: STD_LOGIC;
-    signal enable_write_C_sig : STD_LOGIC;
-    signal enable_write_output_sig : STD_LOGIC;
+    signal write_enable_acc_sig : STD_LOGIC;
+    signal write_enable_mar_sig : STD_LOGIC;
+    signal write_enable_B_sig: STD_LOGIC;
+    signal write_enable_C_sig : STD_LOGIC;
+    signal write_enable_output_sig : STD_LOGIC;
+    signal write_enable_tmp_sig : STD_LOGIC;
     signal pc_data_in_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal pc_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
+    signal minus_flag_sig : STD_LOGIC;
+    signal equal_flag_sig : STD_LOGIC;
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -163,9 +169,9 @@ begin
     PC : entity work.ProgramCounter
         Generic Map(16)
         port map(
-            clkbar => clkbar_sys_sig,
-            clrbar => clrbar_sig,
-            Load_PC_Bar => enable_write_PC_sig,
+            clk => clkbar_sys_sig,
+            clr => clr_sig,
+            write_enable => write_enable_PC_sig,
             increment => Cp_sig,
             data_in => pc_data_in_sig,
             data_out => pc_data_out_sig
@@ -176,7 +182,7 @@ begin
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            write_enable => load_MAR_bar_sig,
+            write_enable => write_enable_mar_sig,
             data_in => w_bus_sig,
             data_out => mar_addr_sig
             );
@@ -186,7 +192,7 @@ begin
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            write_enable => enable_write_ir_opcode_sig,
+            write_enable => write_enable_ir_opcode_sig,
             data_in => w_bus_sig(7 downto 0),
             data_out => IR_opcode_sig        
         );
@@ -196,8 +202,8 @@ begin
                 clk => clk_sys_sig,
                 clr => clr_sig,
                 ir_operand_in => w_bus_sig(7 downto 0),
-                load_IR_operand_low_bar => enable_write_ir_opcode_sig,
-                load_IR_operand_high_bar => enable_write_high_sig,
+                write_enable_low => write_enable_low_sig,
+                write_enable_high => write_enable_high_sig,
                 operand_low_out => operand_low_out_sig,
                 operand_high_out => operand_high_out_sig
             );
@@ -218,12 +224,12 @@ begin
             opcode => IR_opcode_sig,
             wbus_sel => wbus_sel_sig,
             Cp => Cp_sig,
-            load_MAR_bar => load_MAR_bar_sig,
-            load_IR_opcode_bar => enable_write_ir_opcode_sig,
-            load_acc_bar => enable_write_acc_sig,
+            load_MAR_bar => write_enable_mar_sig,
+            load_IR_opcode_bar => write_enable_ir_opcode_sig,
+            load_acc_bar => write_enable_acc_sig,
             Su => Su_sig,
-            load_B_bar => enable_write_B_sig,
-            load_OUT_bar => enable_write_output_sig,
+            load_B_bar => write_enable_B_sig,
+            load_OUT_bar => write_enable_output_sig,
             hltbar => hltbar_sig,
             stage_out => stage_counter_sig
         );
@@ -232,8 +238,8 @@ begin
         Generic Map(8)
         Port Map (
             clk => clk_sys_sig,
-            rst => rst,
-            write_enable => enable_write_acc_sig,
+            clr => clr_sig,
+            write_enable => write_enable_acc_sig,
             data_in => w_bus_sig(7 downto 0),
             data_out => acc_data_sig
         ); 
@@ -252,8 +258,8 @@ begin
     Generic Map(8)
     Port Map (
         clk => clk_sys_sig,
-        rst => rst,
-        enable_write => enable_write_B_sig,
+        clr => clr_sig,
+        write_enable => write_enable_B_sig,
         data_in => w_bus_sig(7 downto 0),
         data_out => b_data_sig
     );
@@ -263,8 +269,8 @@ begin
     Generic Map(8)
     Port Map (
         clk => clk_sys_sig,
-        rst => rst,
-        enable_write => enable_write_C_sig,
+        clr => clr_sig,
+        write_enable => write_enable_C_sig,
         data_in => w_bus_sig(7 downto 0),
         data_out => c_data_sig
     );
@@ -274,8 +280,8 @@ begin
     Generic Map(8)
     Port Map (
         clk => clk_sys_sig,
-        rst => rst,
-        enable_write => enable_write_tmp_sig,
+        clr => clr_sig,
+        write_enable => write_enable_tmp_sig,
         data_in => w_bus_sig(7 downto 0),
         data_out => tmp_data_sig
     );
@@ -303,7 +309,7 @@ begin
     port map (
         clk => clk_sys_sig,
         clr => clr_sig,
-        enable_write => enable_write_output_sig,
+        write_enable => write_enable_output_sig,
         data_in => w_bus_sig(7 downto 0),
         data_out => output_sig
     );

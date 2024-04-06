@@ -8,8 +8,8 @@ entity IR_operand_latch is
         clk : in STD_LOGIC;
         clr : in STD_LOGIC;
         ir_operand_in : in STD_LOGIC_VECTOR(7 downto 0);
-        enable_write_low : in STD_LOGIC;
-        enable_write_high : in STD_LOGIC;
+        write_enable_low : in STD_LOGIC;
+        write_enable_high : in STD_LOGIC;
         operand_low_out : out STD_LOGIC_VECTOR(7 downto 0);
         operand_high_out : out STD_LOGIC_VECTOR(7 downto 0)
     );
@@ -26,9 +26,9 @@ begin
             operand_low_out <= "00000000";
             operand_high_out <= "00000000";
         elsif clk = '1' then
-            if enable_write_low = '1' then
+            if write_enable_low = '1' then
                 operand_low_out <= ir_operand_in;
-            elsif enable_write_high = '1' then
+            elsif write_enable_high = '1' then
                 operand_high_out <= ir_operand_in;
             end if;
         end if;
