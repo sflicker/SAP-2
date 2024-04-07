@@ -42,7 +42,7 @@ architecture behavior of proc_top is
     signal hltbar_sig : std_logic := '1';
     signal clr_sig : STD_LOGIC;
     signal clrbar_sig : STD_LOGIC;
-    signal wbus_sel_sig : STD_LOGIC_VECTOR(2 downto 0);       
+    signal wbus_sel_sig : STD_LOGIC_VECTOR(3 downto 0);       
     signal Cp_sig : STD_LOGIC;
     --signal LMBar_sig : STD_LOGIC;
     --signal LIBAR_sig : STD_LOGIC;
@@ -85,6 +85,13 @@ architecture behavior of proc_top is
     signal minus_flag_sig : STD_LOGIC;
     signal equal_flag_sig : STD_LOGIC;
     signal alu_buffer_out : STD_LOGIC_VECTOR(7 downto 0);
+    signal mdr_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal mdr_mode_sig : STD_LOGIC;
+    signal write_enable_mdr_sig : STD_LOGIC;
+    signal write_enable_alu_out_sig : STD_LOGIC;
+    signal alu_data_out : STD_LOGIC_VECTOR(7 downto 0);
+    signal input_1_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal input_2_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -163,7 +170,12 @@ begin
             IR_operand_in => IR_operand_sig,
             acc_data_in => acc_data_sig,
             alu_data_in => alu_data_sig,
-            RAM_data_in => ram_data_in_sig,
+            MDR_data_in => mdr_data_out_sig,
+            B_data_in => b_data_sig,
+            C_data_in => c_data_sig, 
+            tmp_data_in => tmp_data_sig,
+            input_1_data_in => input_1_data_in_sig,
+            input_2_data_in => input_2_data_in_sig,
             bus_out => w_bus_sig
         );
 
@@ -200,10 +212,9 @@ begin
             write_enable => write_enable_mdr_sig,
             -- bus to mem (write) mode ports (write to memory)
             bus_data_in => w_bus_sig(7 downto 0),
-            mem_data_out => mdr_data_to_mem_sig,
+            mem_data_in => ram_data_out_sig,
             -- mem to bus (read) mode ports (read from memory)
-            mem_data_in =>  mdr_data_from_mem_sig,
-            bus_data_out => mdr_data_to_bus_out_sig
+            data_out => mdr_data_out_sig
         );              
 
     IR : entity work.DataRegister

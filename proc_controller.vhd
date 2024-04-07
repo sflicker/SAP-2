@@ -72,7 +72,7 @@ entity proc_controller is
     opcode : in STD_LOGIC_VECTOR(7 downto 0);          -- 8 bit opcodes
   
     -- outputs
-    wbus_sel : out STD_LOGIC_VECTOR(2 downto 0);
+    wbus_sel : out STD_LOGIC_VECTOR(3 downto 0);
     Cp  : out STD_LOGIC;                          -- increment program counter by one
     load_MAR_bar : out STD_LOGIC;                        -- Load MAR register from WBus - enable low
     load_IR_opcode_bar : out STD_LOGIC;                        -- LOAD IR register from WBus - enable low

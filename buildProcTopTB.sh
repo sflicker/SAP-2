@@ -13,6 +13,7 @@ ghdl -a --std=08 -fsynopsys -v clock.vhd
 #ghdl -a --std=08 -fsynopsys -v single_pulse_generator.vhd
 ghdl -a --std=08 -fsynopsys -v clock_converter.vhd
 ghdl -a --std=08 -fsynopsys -v StatusRegister.vhd
+ghdl -a --std=08 -fsynopsys -v memory_data_register.vhd
 ghdl -a --std=08 -fsynopsys -v ProgramCounter.vhd
 ghdl -a --std=08 -fsynopsys -v passthrough_clock_converter.vhd
 ghdl -a --std=08 -fsynopsys -v clock_controller.vhd
