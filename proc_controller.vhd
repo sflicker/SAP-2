@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
 
-
+-- TODO THIS NEEDS UPDATE FOR SAP-2
 -- CONTROL WORD
 -- BITS 0-2    -- W BUS Selector
                 -- 000 0H PC
@@ -17,6 +17,49 @@ use IEEE.numeric_std.all;
 -- BIT 7        Su - ALU mode. 0 add, 1 sub
 -- BIT 8        LBBar - Load B register from W bus. active low
 -- BIT 9        LOBar - Load output register from W Bus. active Low
+
+-- SAP-2 Opcodes
+-- ADD B        80      ; Accum <= Accum + B ; includes flag updates
+-- ADD C        81      ; Accum <= Accum + C ; includes flag updates
+-- ANA B        A0      ; Accum <= Accum AND B ; includes flag updates
+-- ANA C        A1      ; Accum <= Accum AND C ; includes flag updates
+-- ANI byte     E6      ; Accum <= Accum AND byte ; includes flag updates
+-- CALL address CD      ; PC <= address
+-- CMA          2F      ; Accum <= NOT Accum
+-- DCR A        3D      ; Accum <= Accum - 1 ; includes flag updates
+-- DCR B        05      ; B <= B - 1 ; includes flag updates
+-- DCR C        0D      ; C <= C - 1 ; includes flag updates
+-- HLT          76      ; Stops processing
+-- IN byte      DB      ; Acc <= INPUT PORT #byte
+-- INR A        3C      ; Accum <= Accum + 1 ; flags updates
+-- INR B        04      ; B <= B + 1 ; flags updates
+-- INR C        0C      ; C <= C + 1 ; flags updates
+-- JM address   FA      ; PC <= Address if Minus Flags set
+-- JMP address  C3      ; PC <= Address
+-- JNZ address  C2      ; PC <= Address if zero flag not set
+-- JZ address   CA      ; PC <= Address if zero flag set
+-- LDA address  3A      ; Acc <= RAM[address]
+-- MOV A,B      78      ; Acc <= B
+-- MOV A,C      79      ; Acc <= C
+-- MOV B,A      47      ; B <= Acc
+-- MOV B,C      41      ; B <= C
+-- MOV C,A      4F      ; C <= Acc
+-- MOV C,B      48      ; C <= B
+-- NOP          00      ; do nothing. all counters should be set to default (low) positions
+-- ORA B        B0      ; Acc <= Acc OR B   ; flags also set
+-- ORA C        B1      ; Acc <= Acc OR C   ; flags also set
+-- ORI Byte     F6      ; Acc <= Acc OR byte    ; flags also set
+-- OUT byte     D3      ; OUTPUT PORT #byte <= Acc
+-- RAL          17      ; shift accumulator bits left
+-- RAR          1F      ; shift accumulator bits right
+-- RET          C9      ; return from subroutine
+-- STA address  32      ; RAM[address] <= Acc
+-- SUB B        90      ; ACC <= Acc - B        ; flags also set
+-- SUB C        91      ; ACC <= ACC - C        ; flags also set
+-- XRA B        A8      ; ACC <= ACC XOR B      ; flags also set
+-- XRA C        A9      ; ACC <= ACC XOR C      ; flags also set
+-- XRI byte     EE      ; ACC <= ACC xor byte   ; flags also set
+
 
 
 

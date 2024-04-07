@@ -18,6 +18,10 @@ architecture Behavioral of mem_test_top is
     signal addr_counter : unsigned(15 downto 0) := (others => '0');
     signal write_enable_sig : STD_LOGIC;
     signal hltbar : STD_LOGIC := '1';
+    signal control_rom_addr_sig : STD_LOGIC_VECTOR(9 downto 0);
+    signal control_rom_data_in_sig : STD_LOGIC_VECTOR(23 downto 0);
+    signal control_rom_write_enable_sig : STD_LOGIC;
+    signal control_rom_data_out_sig : STD_LOGIC_VECTOR(23 downto 0);
 begin
 
     ram_bank : entity work.ram_bank
@@ -27,6 +31,15 @@ begin
         data_in => data_in_sig,
         write_enable => write_enable_sig,
         data_out => data_out_sig
+    );
+
+    ctrl_rom : entity work.control_rom
+    port map(
+        clk => clk,
+        addr => control_rom_addr_sig,
+        data_in => control_rom_data_in_sig,
+        write_enable => control_rom_write_enable_sig,
+        data_out => control_rom_data_out_sig
     );
 
     mem_test : process(clk, rst, hltbar)

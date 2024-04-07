@@ -11,6 +11,7 @@ echo "Compiling modules"
 
 ghdl -a --std=08 -fsynopsys -v clock.vhd
 ghdl -a --std=08 -fsynopsys -v ram_bank.vhd
+ghdl -a --std=08 -fsynopsys -v control_rom.vhd
 ghdl -a --std=08 -fsynopsys -v mem_test_top.vhd
 ghdl -a --std=08 -fsynopsys -v mem_test_top_tb.vhd
 

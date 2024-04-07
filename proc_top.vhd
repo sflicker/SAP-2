@@ -84,6 +84,7 @@ architecture behavior of proc_top is
     signal pc_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal minus_flag_sig : STD_LOGIC;
     signal equal_flag_sig : STD_LOGIC;
+    signal alu_buffer_out : STD_LOGIC_VECTOR(7 downto 0);
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -177,6 +178,7 @@ begin
             data_out => pc_data_out_sig
         );
 
+    -- MEMORY ADDRESS REGISTER
     MAR : entity work.DataRegister
         Generic Map(16)
         port map(
@@ -187,6 +189,23 @@ begin
             data_out => mar_addr_sig
             );
             
+    -- MEMORY DATA_REGISTER        
+    MDR : entity work.MemoryDataRegister
+        Generic Map(8)
+        port map(
+            clk => clk_sys_sig,
+            clr => clr_sig,
+            mode => mdr_mode_sig,
+            -- write enable for both modes
+            write_enable => write_enable_mdr_sig,
+            -- bus to mem (write) mode ports (write to memory)
+            bus_data_in => w_bus_sig(7 downto 0),
+            mem_data_out => mdr_data_to_mem_sig,
+            -- mem to bus (read) mode ports (read from memory)
+            mem_data_in =>  mdr_data_from_mem_sig,
+            bus_data_out => mdr_data_to_bus_out_sig
+        );              
+
     IR : entity work.DataRegister
         generic map(8)
         port map(
@@ -304,15 +323,14 @@ begin
             equal_flag => equal_flag_sig
             );
 
-        ALU_OUT : entity work.DataRegister
-            port map (
-                clk => clk_sys_sig,
-                clr => clr_sig,
-                write_enable => write_enable_alu_out_sig,
-                data_in => alu_data_out,
-                data_
-            )
-
+    ALU_OUT : entity work.DataRegister
+        port map (
+            clk => clk_sys_sig,
+            clr => clr_sig,
+            write_enable => write_enable_alu_out_sig,
+            data_in => alu_data_out,
+            data_out => alu_buffer_out
+        );
 
     OUTPUT_REG : entity work.DataRegister
     Generic Map(8)
