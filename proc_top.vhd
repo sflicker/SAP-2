@@ -47,7 +47,7 @@ architecture behavior of proc_top is
     --signal LMBar_sig : STD_LOGIC;
     --signal LIBAR_sig : STD_LOGIC;
 --    signal load_accumulator_bar_sig : std_logic;
-    signal Su_sig : std_logic;
+    signal alu_op_sig : std_logic_vector(2 downto 0);
     --signal LBBar_sig : std_logic;
     --signal LOBar_sig : std_logic;
     signal pc_data_sig : STD_LOGIC_VECTOR(15 downto 0);
@@ -86,7 +86,7 @@ architecture behavior of proc_top is
     signal equal_flag_sig : STD_LOGIC;
     signal alu_buffer_out : STD_LOGIC_VECTOR(7 downto 0);
     signal mdr_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal mdr_mode_sig : STD_LOGIC;
+    signal mdr_direction_sig : STD_LOGIC;
     signal write_enable_mdr_sig : STD_LOGIC;
     signal write_enable_alu_out_sig : STD_LOGIC;
     signal alu_data_out : STD_LOGIC_VECTOR(7 downto 0);
@@ -100,7 +100,7 @@ architecture behavior of proc_top is
     attribute MARK_DEBUG of hltbar_sig : signal is "true";
     attribute MARK_DEBUG of clrbar_sig : signal is "true";
     attribute MARK_DEBUG of clr_sig : signal is "true";
-    attribute MARK_DEBUG of Su_sig : signal is "true";
+    attribute MARK_DEBUG of alu_op_sig : signal is "true";
     attribute MARK_DEBUG of pc_data_sig : signal is "true";
     attribute MARK_DEBUG of mar_addr_sig : signal is "true";
     attribute MARK_DEBUG of IR_opcode_sig : signal is "true";
@@ -207,7 +207,7 @@ begin
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            mode => mdr_mode_sig,
+            direction => mdr_direction_sig,
             -- write enable for both modes
             write_enable => write_enable_mdr_sig,
             -- bus to mem (write) mode ports (write to memory)
@@ -257,7 +257,7 @@ begin
             load_MAR_bar => write_enable_mar_sig,
             load_IR_opcode_bar => write_enable_ir_opcode_sig,
             load_acc_bar => write_enable_acc_sig,
-            Su => Su_sig,
+            alu_op => alu_op_sig,
             load_B_bar => write_enable_B_sig,
             load_OUT_bar => write_enable_output_sig,
             hltbar => hltbar_sig,
@@ -324,9 +324,10 @@ begin
     --         b_out => b_data_sig
     --     );
         
-      ALU : entity work.ALU
+    ALU : entity work.ALU
         port map (
-            op => Su_sig,
+            clr => clr_sig,
+            op => alu_op_sig,
             input_1 => acc_data_sig,
             input_2 => tmp_data_sig,
             alu_out => alu_data_sig,
@@ -334,14 +335,6 @@ begin
             equal_flag => equal_flag_sig
             );
 
-    ALU_OUT : entity work.DataRegister
-        port map (
-            clk => clk_sys_sig,
-            clr => clr_sig,
-            write_enable => write_enable_alu_out_sig,
-            data_in => alu_data_out,
-            data_out => alu_buffer_out
-        );
 
     OUTPUT_REG : entity work.DataRegister
     Generic Map(8)

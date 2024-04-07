@@ -27,10 +27,10 @@ begin
             when "0010" => bus_out <= IR_operand_in;
             when "0011" => bus_out <= ("00000000" & alu_data_in);
             when "0100" => bus_out <= ("00000000" & MDR_data_in);
-            when "0101" => bus_out <= ("00000000" & B_data_in);
-            when "0110" => bus_out <= ("00000000" & C_data_in);
-            when "0111" => bus_out <= ("00000000" & tmp_data_in);
-            when "1000" => bus_out <= ("00000000" & acc_data_in);
+            when "0101" => bus_out <= ("00000000" & acc_data_in);
+            when "0110" => bus_out <= ("00000000" & B_data_in);
+            when "0111" => bus_out <= ("00000000" & C_data_in);
+            when "1000" => bus_out <= ("00000000" & tmp_data_in);
             when "1001" => bus_out <= ("00000000" & input_1_data_in);
             when "1010" => bus_out <= ("00000000" & input_2_data_in);
             when others => bus_out <= (others => '0');

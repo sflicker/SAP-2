@@ -2,21 +2,43 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
 
--- TODO THIS NEEDS UPDATE FOR SAP-2
 -- CONTROL WORD
--- BITS 0-2    -- W BUS Selector
-                -- 000 0H PC
-                -- 001 1H Accumulator
-                -- 010 2H ALU
-                -- 011 3H IR
-                -- 100 4H RAM
--- BIT 3        Cp - Program Counter increment. active high
--- BIT 4        LMBar - Load MAR from W bus. active Low
--- BIT 5        LIBar - Load IR from W Bus. active Low
--- BIT 6        LABar - Load Accumulator from W bus. active low
--- BIT 7        Su - ALU mode. 0 add, 1 sub
--- BIT 8        LBBar - Load B register from W bus. active low
--- BIT 9        LOBar - Load output register from W Bus. active Low
+-- BITS 0-3     W BUS Selector
+                -- 0000 0H  All Zeros
+                -- 0001 1H  PC
+                -- 0010 2H  IR Operand
+                -- 0011 3H  ALU Out
+                -- 0100 4H  MDR Out
+                -- 0101 5H  ACC Out
+                -- 0110 6H  B Out
+                -- 0111 7H  C Out
+                -- 1000 8H  Tmp Out
+                -- 1001 9H  Input Port 1
+                -- 1002 AH  Input Port 2
+--  BITS 4-6    ALU Operation
+                -- 000 0H   ADD
+                -- 001 1H   SUB
+                -- 010 2H   INCREMENT
+                -- 011 3H   DECREMENT
+                -- 100 4H   AND
+                -- 101 5H   OR
+                -- 110 6H   XOR
+                -- 111 7H   Complement                
+--  BIT 7       ACCUMULATOR Write Enable
+--  BIT 8       B Write Enable
+--  BIT 9       C Write Enable
+--  BIT A       TMP Write Enable
+--  BIT B       MAR Write Enable
+--  BIT C       PC Write Enable
+--  BIT D       PC Increment
+--  BIT E       MDR Write Enable
+--  BIT F       MDR Direction
+--  BIT 10      IR Write Enable
+--  BIT 11      IR Operand Low Write Enable
+--  BIT 12      IR Operand High Write Enable
+--  BIT 13      OUT Port 1 Write Enable
+--  BIT 14      OUT Port 2 Write Enable
+
 
 -- SAP-2 Opcodes
 -- ADD B        80      ; Accum <= Accum + B ; includes flag updates
@@ -73,13 +95,22 @@ entity proc_controller is
   
     -- outputs
     wbus_sel : out STD_LOGIC_VECTOR(3 downto 0);
-    Cp  : out STD_LOGIC;                          -- increment program counter by one
-    load_MAR_bar : out STD_LOGIC;                        -- Load MAR register from WBus - enable low
-    load_IR_opcode_bar : out STD_LOGIC;                        -- LOAD IR register from WBus - enable low
-    load_acc_bar : out STD_LOGIC;                        -- LOAD Accumulator register from WBus -- enable low
-    Su : out STD_LOGIC;                           -- operation for ALU. 0 - ADD, 1 - Subtract
-    load_B_bar : out STD_LOGIC;                        -- LOAD B register from WBus - eanble low
-    load_OUT_bar : out STD_LOGIC;
+    alu_op : out STD_LOGIC_VECTOR(2 downto 0);
+    acc_write_enable : out STD_LOGIC;
+    b_write_enable : out STD_LOGIC;
+    c_write_enable : out STD_LOGIC;
+    tmp_write_enble : out STD_LOGIC;
+    mar_write_enble : out STD_LOGIC;
+    pc_write_enable : out STD_LOGIC;
+    pc_increment : out STD_LOGIC;
+    mdr_write_enable : out STD_LOGIC;
+    mdr_direction : out STD_LOGIC;
+    ir_opcode_write_enable : out STD_LOGIC;
+    ir_operand_low_write_enable : out STD_LOGIC;
+    ir_operand_high_write_enable : out STD_LOGIC;
+    out_1_write_enable : out STD_LOGIC;
+    out_2_write_enable : out STD_LOGIC;
+    
     HLTBar : out STD_LOGIC;
     stage_out : out integer
     );
@@ -97,7 +128,7 @@ architecture Behavioral of proc_controller is
 
 
     type ADDRESS_ROM_TYPE is array(0 to 15) of std_logic_vector(3 downto 0);
-    type CONTROL_ROM_TYPE is array(0 to 15) of STD_LOGIC_VECTOR(0 to 9);
+    type CONTROL_ROM_TYPE is array(0 to 15) of STD_LOGIC_VECTOR(0 to 20);
 
     constant ADDRESS_ROM_CONTENTS : ADDRESS_ROM_TYPE := (
         0 => "0011",     -- LDA
@@ -108,7 +139,7 @@ architecture Behavioral of proc_controller is
         others => "0000"
     );
 
-    constant NOP : STD_LOGIC_VECTOR(0 to 9) := "1110111011";
+    constant NOP : STD_LOGIC_VECTOR(0 to 20) := "000000000000000000000";
 
     constant CONTROL_ROM : CONTROL_ROM_TYPE := (
        -- FETCH
@@ -173,17 +204,17 @@ begin
                     stage_sig <= stage_var;
 --                    stage_counter <= stage;
                 else
-
+                    --TODO bits need updating for SAP-2 architecture
                     control_word_signal <= control_word;
                     control_word_index_signal <= control_word_index;
-                    wbus_sel <= control_word(0 to 2);
-                    Cp <= control_word(3);
-                    load_MAR_bar <= control_word(4);
-                    load_IR_opcode_bar <= control_word(5);
-                    load_acc_bar <= control_word(6);
-                    Su <= control_word(7);
-                    load_B_bar <= control_word(8);
-                    load_OUT_bar <= control_word(9);
+                    wbus_sel <= control_word(0 to 3);
+                    pc_increment <= control_word(3);
+                    mar_write_enble <= control_word(4);
+                    ir_opcode_write_enable <= control_word(5);
+                    acc_write_enable <= control_word(6);
+                    alu_op <= control_word(7);
+                    b_write_enable <= control_word(8);
+                    out_1_write_enable <= control_word(9);
 
 --                    stage_counter <= stage;
         
