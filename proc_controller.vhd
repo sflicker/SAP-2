@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
-
+  
 -- CONTROL WORD
 -- BITS 0-3     W BUS Selector
                 -- 0000 0H  All Zeros
@@ -32,13 +32,13 @@ use IEEE.numeric_std.all;
 --  BIT C       PC Write Enable
 --  BIT D       PC Increment
 --  BIT E       MDR Write Enable
---  BIT F       MDR Direction
+--  BIT F       MDR Direction             0 READ, 1 WRITE
 --  BIT 10      IR Write Enable
 --  BIT 11      IR Operand Low Write Enable
 --  BIT 12      IR Operand High Write Enable
 --  BIT 13      OUT Port 1 Write Enable
 --  BIT 14      OUT Port 2 Write Enable
-
+--  BITS 15-17  UNUSED
 
 -- SAP-2 Opcodes
 -- ADD B        80      ; Accum <= Accum + B ; includes flag updates
@@ -99,8 +99,8 @@ entity proc_controller is
     acc_write_enable : out STD_LOGIC;
     b_write_enable : out STD_LOGIC;
     c_write_enable : out STD_LOGIC;
-    tmp_write_enble : out STD_LOGIC;
-    mar_write_enble : out STD_LOGIC;
+    tmp_write_enable : out STD_LOGIC;
+    mar_write_enable : out STD_LOGIC;
     pc_write_enable : out STD_LOGIC;
     pc_increment : out STD_LOGIC;
     mdr_write_enable : out STD_LOGIC;
@@ -120,7 +120,7 @@ architecture Behavioral of proc_controller is
     signal stage_sig : integer := 1;
 
     signal control_word_index_signal : std_logic_vector(3 downto 0);
-    signal control_word_signal : std_logic_vector(0 to 9);
+    signal control_word_signal : std_logic_vector(0 to 23);
 
 --    phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
 
@@ -128,7 +128,7 @@ architecture Behavioral of proc_controller is
 
 
     type ADDRESS_ROM_TYPE is array(0 to 15) of std_logic_vector(3 downto 0);
-    type CONTROL_ROM_TYPE is array(0 to 15) of STD_LOGIC_VECTOR(0 to 20);
+    type CONTROL_ROM_TYPE is array(0 to 15) of STD_LOGIC_VECTOR(0 to 23);
 
     constant ADDRESS_ROM_CONTENTS : ADDRESS_ROM_TYPE := (
         0 => "0011",     -- LDA
@@ -139,36 +139,53 @@ architecture Behavioral of proc_controller is
         others => "0000"
     );
 
-    constant NOP : STD_LOGIC_VECTOR(0 to 20) := "000000000000000000000";
+    constant NOP : STD_LOGIC_VECTOR(0 to 23) := "000000000000000000000000";
 
     constant CONTROL_ROM : CONTROL_ROM_TYPE := (
        -- FETCH
-       0 =>  "0000011011",     -- Phase1:   PC -> MAR
-       1 =>  "1111111011",     -- Phase2:   INC PC
-       2 =>  "1000101011",     -- Phase3:   RAM -> IR
-       -- LDA
-       3 =>  "0110011011",     -- LDA Phase4: IR (operand portion) -> MAR
-       4 =>  "1000110011",     -- LDA Phase5: RAM -> A
-       5 =>  NOP,     -- LDA Phase6: NOP
-       -- ADD
-       6 =>  "0110011011",      -- ADD Phase4: IR(operand portion) -> MAR
-       7 =>  "1000111001",      -- ADD Phase5: RAM -> B, SU -> 0
-       8 =>  "0100110011",      -- ADD Phase6: ALU -> A
-       -- SUB
-       9 =>  "0110011111",      -- SUB Phase4: IR(operand portion) -> MAR
-       10 => "1000111101",      -- SUB Phase5: RAM -> B, SU => 1
-       11 => "0100110111",      -- --SUB phase6: ALU => A
-       -- OUT
-       12 => "0010111010",      -- OUT phase 4  A => OUT
-       13 => NOP,      -- OUT phase 5 NOP
-       14 => NOP,      -- OUT phase 5 NOP
-       -- unused
-       15 => NOP       --NOP
+    --    0 =>  "0000011011",     -- Phase1:   PC -> MAR
+    --    1 =>  "1111111011",     -- Phase2:   INC PC
+    --    2 =>  "1000101011",     -- Phase3:   RAM -> IR
+       0 =>  "000100000001000000000000",     -- Phase1:   PC -> MAR;
+       1 =>  "000000000000010000000000",     -- Phase2:   INC PC; MDR READ
+       2 =>  "001000000000000100000000",     -- Phase3:   MDR -> IR
+       3 =>  "000000000000000000000000",     -- NOP
+       4 =>  "000000000000000000000000",     -- NOP
+       5 =>  "000000000000000000000000",     -- NOP
+       6 =>  "000000000000000000000000",     -- NOP
+       7 =>  "000000000000000000000000",     -- NOP
+       8 =>  "000000000000000000000000",     -- NOP
+       9 =>  "000000000000000000000000",     -- NOP
+       10 =>  "000000000000000000000000",     -- NOP
+       11 =>  "000000000000000000000000",     -- NOP
+       12 =>  "000000000000000000000000",     -- NOP
+       13 =>  "000000000000000000000000",     -- NOP
+       14 =>  "000000000000000000000000",     -- NOP
+       15 =>  "000000000000000000000000"     -- NOP
+
+    --    -- LDA
+    --    3 =>  "0110011011",     -- LDA Phase4: IR (operand portion) -> MAR
+    --    4 =>  "1000110011",     -- LDA Phase5: RAM -> A
+    --    5 =>  NOP,     -- LDA Phase6: NOP
+    --    -- ADD
+    --    6 =>  "0110011011",      -- ADD Phase4: IR(operand portion) -> MAR
+    --    7 =>  "1000111001",      -- ADD Phase5: RAM -> B, SU -> 0
+    --    8 =>  "0100110011",      -- ADD Phase6: ALU -> A
+    --    -- SUB
+    --    9 =>  "0110011111",      -- SUB Phase4: IR(operand portion) -> MAR
+    --    10 => "1000111101",      -- SUB Phase5: RAM -> B, SU => 1
+    --    11 => "0100110111",      -- --SUB phase6: ALU => A
+    --    -- OUT
+    --    12 => "0010111010",      -- OUT phase 4  A => OUT
+    --    13 => NOP,      -- OUT phase 5 NOP
+    --    14 => NOP,      -- OUT phase 5 NOP
+    --    -- unused
+    --    15 => NOP       --NOP
        
        );
 
 begin
-    HLTBAR <= '0' when opcode = "1111" else
+    HLTBAR <= '0' when opcode = x"76" else
         '1';
     stage_out <= stage_sig;
 
@@ -176,7 +193,7 @@ begin
         process(clk, clrbar, opcode)
             variable stage_var : integer := 1;
             variable control_word_index : std_logic_vector(3 downto 0);
-            variable control_word : std_logic_vector(0 to 9);
+            variable control_word : std_logic_vector(0 to 20);
         begin
 
             if CLRBAR = '0' then
@@ -208,13 +225,29 @@ begin
                     control_word_signal <= control_word;
                     control_word_index_signal <= control_word_index;
                     wbus_sel <= control_word(0 to 3);
-                    pc_increment <= control_word(3);
-                    mar_write_enble <= control_word(4);
-                    ir_opcode_write_enable <= control_word(5);
-                    acc_write_enable <= control_word(6);
-                    alu_op <= control_word(7);
+                    alu_op <= control_word(4 to 6);
+                    acc_write_enable <= control_word(7);
                     b_write_enable <= control_word(8);
-                    out_1_write_enable <= control_word(9);
+                    c_write_enable <= control_word(9);
+                    tmp_write_enable <= control_word(10);
+                    pc_write_enable <= control_word(11);
+                    mar_write_enable <= control_word(12);
+                    pc_increment <= control_word(13);
+                    mdr_write_enable <= control_word(14);
+                    mdr_direction <= control_word(15);
+                    ir_opcode_write_enable <= control_word(16);
+                    ir_operand_low_write_enable <= control_word(17);
+                    ir_operand_high_write_enable <= control_word(18);
+                    out_1_write_enable <= control_word(19);
+                    out_2_write_enable <= control_word(20);
+
+                    -- pc_increment <= control_word(3);
+                    -- mar_write_enble <= control_word(4);
+                    -- ir_opcode_write_enable <= control_word(5);
+                    -- acc_write_enable <= control_word(6);
+                    -- alu_op <= control_word(7);
+                    -- b_write_enable <= control_word(8);
+                    -- out_1_write_enable <= control_word(9);
 
 --                    stage_counter <= stage;
         

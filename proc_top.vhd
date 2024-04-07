@@ -65,8 +65,10 @@ architecture behavior of proc_top is
     signal tmp_data_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal display_data : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
     signal stage_counter_sig : INTEGER;
-    signal output_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal output_1_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal output_2_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal write_enable_PC_sig : STD_LOGIC;
+    signal pc_increment_sig : STD_LOGIC;
     signal write_enable_ir_opcode_sig : STD_LOGIC;
     signal write_enable_low_sig : STD_LOGIC;
     signal write_enable_high_sig : STD_LOGIC;
@@ -80,6 +82,8 @@ architecture behavior of proc_top is
     signal write_enable_C_sig : STD_LOGIC;
     signal write_enable_output_sig : STD_LOGIC;
     signal write_enable_tmp_sig : STD_LOGIC;
+    signal write_enable_out_1_sig : STD_LOGIC;
+    signal write_enable_out_2_sig : STD_LOGIC;
     signal pc_data_in_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal pc_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal minus_flag_sig : STD_LOGIC;
@@ -108,7 +112,7 @@ architecture behavior of proc_top is
 --    attribute MARK_DEBUG of IR_operand_sig : signal is "true";
     attribute MARK_DEBUG of acc_data_sig : signal is "true";
     attribute MARK_DEBUG of b_data_sig : signal is "true";
-    attribute MARK_DEBUG of output_sig : signal is "true";
+    attribute MARK_DEBUG of output_1_sig : signal is "true";
 
     
     
@@ -185,7 +189,7 @@ begin
             clk => clkbar_sys_sig,
             clr => clr_sig,
             write_enable => write_enable_PC_sig,
-            increment => Cp_sig,
+            increment => pc_increment_sig,
             data_in => pc_data_in_sig,
             data_out => pc_data_out_sig
         );
@@ -253,13 +257,27 @@ begin
             clrbar => clrbar_sig,
             opcode => IR_opcode_sig,
             wbus_sel => wbus_sel_sig,
-            Cp => Cp_sig,
-            load_MAR_bar => write_enable_mar_sig,
-            load_IR_opcode_bar => write_enable_ir_opcode_sig,
-            load_acc_bar => write_enable_acc_sig,
             alu_op => alu_op_sig,
-            load_B_bar => write_enable_B_sig,
-            load_OUT_bar => write_enable_output_sig,
+            --Cp => Cp_sig,
+            acc_write_enable => write_enable_acc_sig,
+            b_write_enable => write_enable_B_sig,
+            c_write_enable => write_enable_C_sig,
+            tmp_write_enable => write_enable_tmp_sig,
+            mar_write_enable => write_enable_mar_sig,
+            pc_write_enable => write_enable_PC_sig,
+            pc_increment => pc_increment_sig,
+            mdr_write_enable => write_enable_mdr_sig,
+            mdr_direction => mdr_direction_sig,
+            ir_opcode_write_enable => write_enable_ir_opcode_sig,
+            ir_operand_low_write_enable => write_enable_low_sig,
+            ir_operand_high_write_enable => write_enable_high_sig,
+            out_1_write_enable => write_enable_out_1_sig,
+            out_2_write_enable => write_enable_out_2_sig,
+            -- load_MAR_bar => write_enable_mar_sig,
+            -- load_IR_opcode_bar => write_enable_ir_opcode_sig,
+            -- load_acc_bar => write_enable_acc_sig,
+            -- load_B_bar => write_enable_B_sig,
+            -- load_OUT_bar => write_enable_output_sig,
             hltbar => hltbar_sig,
             stage_out => stage_counter_sig
         );
@@ -336,14 +354,24 @@ begin
             );
 
 
-    OUTPUT_REG : entity work.DataRegister
+    OUTPUT_1 : entity work.DataRegister
     Generic Map(8)
     port map (
         clk => clk_sys_sig,
         clr => clr_sig,
-        write_enable => write_enable_output_sig,
+        write_enable => write_enable_out_1_sig,
         data_in => w_bus_sig(7 downto 0),
-        data_out => output_sig
+        data_out => output_1_sig
+    );
+
+    OUTPUT_2 : entity work.DataRegister
+    Generic Map(8)
+    port map (
+        clk => clk_sys_sig,
+        clr => clr_sig,
+        write_enable => write_enable_out_2_sig,
+        data_in => w_bus_sig(7 downto 0),
+        data_out => output_2_sig
     );
 
     -- OUTPUT_REG : entity work.output
