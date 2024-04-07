@@ -193,7 +193,7 @@ begin
         process(clk, clrbar, opcode)
             variable stage_var : integer := 1;
             variable control_word_index : std_logic_vector(3 downto 0);
-            variable control_word : std_logic_vector(0 to 20);
+            variable control_word : std_logic_vector(0 to 23);
         begin
 
             if CLRBAR = '0' then
@@ -208,6 +208,7 @@ begin
                     control_word_index := std_logic_vector(unsigned(control_word_index) + 1);
                 end if;
 
+                Report "Control Word Index: " & to_string(control_word_index);
                 control_word := CONTROL_ROM(to_integer(unsigned(control_word_index)));
 
 
