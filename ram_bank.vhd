@@ -42,7 +42,7 @@ begin
         if rising_edge(clk) then
             if write_enable = '1' then
                 RAM(to_integer(unsigned(addr))) <= data_in;
-                data_out <= data_in;
+--                data_out <= data_in;
             else 
                 data_out <= RAM(to_integer(unsigned(addr)));
             end if;

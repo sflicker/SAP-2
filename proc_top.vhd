@@ -43,18 +43,10 @@ architecture behavior of proc_top is
     signal clr_sig : STD_LOGIC;
     signal clrbar_sig : STD_LOGIC;
     signal wbus_sel_sig : STD_LOGIC_VECTOR(3 downto 0);       
-    signal Cp_sig : STD_LOGIC;
-    --signal LMBar_sig : STD_LOGIC;
-    --signal LIBAR_sig : STD_LOGIC;
---    signal load_accumulator_bar_sig : std_logic;
     signal alu_op_sig : std_logic_vector(2 downto 0);
-    --signal LBBar_sig : std_logic;
-    --signal LOBar_sig : std_logic;
-    signal pc_data_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal acc_data_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal alu_data_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal IR_operand_sig : STD_LOGIC_VECTOR(15 downto 0);
---    signal IR_data_operand_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal IR_opcode_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal RAM_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal w_bus_sig : STD_LOGIC_VECTOR(15 downto 0);
@@ -75,7 +67,6 @@ architecture behavior of proc_top is
     signal operand_low_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal operand_high_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal ram_write_enable_sig : STD_LOGIC;
-    --signal enable_write_ir_opcode_sig : STD_LOGIC;
     signal write_enable_acc_sig : STD_LOGIC;
     signal write_enable_mar_sig : STD_LOGIC;
     signal write_enable_B_sig: STD_LOGIC;
@@ -105,11 +96,9 @@ architecture behavior of proc_top is
     attribute MARK_DEBUG of clrbar_sig : signal is "true";
     attribute MARK_DEBUG of clr_sig : signal is "true";
     attribute MARK_DEBUG of alu_op_sig : signal is "true";
-    attribute MARK_DEBUG of pc_data_sig : signal is "true";
     attribute MARK_DEBUG of mar_addr_sig : signal is "true";
     attribute MARK_DEBUG of IR_opcode_sig : signal is "true";
     attribute MARK_DEBUG of IR_operand_sig : signal is "true";
---    attribute MARK_DEBUG of IR_operand_sig : signal is "true";
     attribute MARK_DEBUG of acc_data_sig : signal is "true";
     attribute MARK_DEBUG of b_data_sig : signal is "true";
     attribute MARK_DEBUG of output_1_sig : signal is "true";
@@ -170,7 +159,7 @@ begin
     w_bus : entity work.w_bus
         port map(
             sel => wbus_sel_sig,
-            pc_addr_in => pc_data_sig,
+            pc_addr_in => pc_data_out_sig,
             IR_operand_in => IR_operand_sig,
             acc_data_in => acc_data_sig,
             alu_data_in => alu_data_sig,
@@ -258,7 +247,6 @@ begin
             opcode => IR_opcode_sig,
             wbus_sel => wbus_sel_sig,
             alu_op => alu_op_sig,
-            --Cp => Cp_sig,
             acc_write_enable => write_enable_acc_sig,
             b_write_enable => write_enable_B_sig,
             c_write_enable => write_enable_C_sig,
@@ -373,6 +361,15 @@ begin
         data_in => w_bus_sig(7 downto 0),
         data_out => output_2_sig
     );
+
+    REGISTER_LOG : process(clk_sys_sig)
+    begin
+        Report "Current Simulation Time: " & time'image(now)
+            & ", PC: " & to_string(pc_data_out_sig)
+            & ", MAR: " & to_string(mar_addr_sig)
+            & ", MDR: " & to_string(mdr_data_out_sig)
+            & ", OPCODE: " & to_string(IR_opcode_sig);
+    end process;
 
     -- OUTPUT_REG : entity work.output
     --         port map (

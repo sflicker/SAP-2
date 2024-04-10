@@ -45,7 +45,7 @@ use IEEE.numeric_std.all;
 -- ADD C        81      ; Accum <= Accum + C ; includes flag updates
 -- ANA B        A0      ; Accum <= Accum AND B ; includes flag updates
 -- ANA C        A1      ; Accum <= Accum AND C ; includes flag updates
--- ANI byte     E6      ; Accum <= Accum AND byte ; includes flag updates
+-- ANI byte     E6      ; Accum <= Accum AND byte ; includes flag updatesm
 -- CALL address CD      ; PC <= address
 -- CMA          2F      ; Accum <= NOT Accum
 -- DCR A        3D      ; Accum <= Accum - 1 ; includes flag updates
@@ -148,7 +148,7 @@ architecture Behavioral of proc_controller is
     --    2 =>  "1000101011",     -- Phase3:   RAM -> IR
        0 =>  "000100000001000000000000",     -- Phase1:   PC -> MAR;
        1 =>  "000000000000010000000000",     -- Phase2:   INC PC; MDR READ
-       2 =>  "001000000000000100000000",     -- Phase3:   MDR -> IR
+       2 =>  "010000000000000010000000",     -- Phase3:   MDR -> IR
        3 =>  "000000000000000000000000",     -- NOP
        4 =>  "000000000000000000000000",     -- NOP
        5 =>  "000000000000000000000000",     -- NOP
@@ -183,6 +183,33 @@ architecture Behavioral of proc_controller is
     --    15 => NOP       --NOP
        
        );
+
+
+       procedure output_control_word(
+        variable stage_var : integer := 1;
+        variable control_word : std_logic_vector(0 to 23)) is
+    begin
+        Report "Stage: " & to_string(stage_var) 
+            & ", wbus_sel: " & to_string(control_word(0 to 3))
+            & ", alu_op: " & to_string(control_word(4 to 6))
+            & ", acc_write_enable: " & to_string(control_word(7))
+            & ", b_write_enable: " & to_string(control_word(8))
+            & ", c_write_enable: " & to_string(control_word(9))
+            & ", tmp_write_enable: " & to_string(control_word(10))
+            & ", mar_write_enable: " & to_string(control_word(11))
+            & ", pc_write_enable: " & to_string(control_word(12))
+            & ", pc_increment: " & to_string(control_word(13))
+            & ", mdr_write_enable: " & to_string(control_word(14))
+            & ", mdr_direction: " & to_string(control_word(15))
+            & ", ir_opcode_write_enable: " & to_string(control_word(16))
+            & ", ir_operand_low_write_enable: " & to_string(control_word(17))
+            & ", ir_operand_high_write_enable: " & to_string(control_word(18))
+            & ", out_1_write_enable: " & to_string(control_word(19))
+            & ", out_2_write_enable: " & to_string(control_word(20));
+
+    end procedure;
+
+
 
 begin
     HLTBAR <= '0' when opcode = x"76" else
@@ -223,6 +250,8 @@ begin
 --                    stage_counter <= stage;
                 else
                     --TODO bits need updating for SAP-2 architecture
+                    output_control_word(stage_var, control_word);
+
                     control_word_signal <= control_word;
                     control_word_index_signal <= control_word_index;
                     wbus_sel <= control_word(0 to 3);
@@ -231,8 +260,8 @@ begin
                     b_write_enable <= control_word(8);
                     c_write_enable <= control_word(9);
                     tmp_write_enable <= control_word(10);
-                    pc_write_enable <= control_word(11);
-                    mar_write_enable <= control_word(12);
+                    mar_write_enable <= control_word(11);
+                    pc_write_enable <= control_word(12);
                     pc_increment <= control_word(13);
                     mdr_write_enable <= control_word(14);
                     mdr_direction <= control_word(15);
