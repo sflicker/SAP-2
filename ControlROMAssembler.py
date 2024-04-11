@@ -51,7 +51,8 @@ def build_and_write_instruction_index(control_rom_data, nop_index):
     with open(index_filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         for opcode in range(256):
-            writer.writerow([f"{opcode:02X}", opcode_index[opcode]])
+            bin_index = format(opcode_index[opcode], '010b') 
+            writer.writerow([f"{opcode:02X}", bin_index])
 
 
 control_signals = read_control_signals(input_filename)

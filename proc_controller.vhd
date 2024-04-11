@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
+use std.textio.all;
   
 -- CONTROL WORD
 -- BITS 0-3     W BUS Selector
@@ -119,49 +120,77 @@ end proc_controller;
 architecture Behavioral of proc_controller is
     signal stage_sig : integer := 1;
 
-    signal control_word_index_signal : std_logic_vector(3 downto 0);
-    signal control_word_signal : std_logic_vector(0 to 23);
+    signal control_word_index_signal : std_logic_vector(9 downto 0);
+    signal control_word_signal : std_logic_vector(0 to 20);
 
 --    phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
 
 --    stage_counter : out integer
 
 
-    type ADDRESS_ROM_TYPE is array(0 to 15) of std_logic_vector(3 downto 0);
-    type CONTROL_ROM_TYPE is array(0 to 15) of STD_LOGIC_VECTOR(0 to 23);
+    type ADDRESS_ROM_TYPE is array(0 to 255) of std_logic_vector(9 downto 0);
+    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 20);
 
-    constant ADDRESS_ROM_CONTENTS : ADDRESS_ROM_TYPE := (
-        0 => "0011",     -- LDA
-        1 => "0110",     -- ADD
-        2 => "1001",     -- SUB
-        14 => "1100",     -- OUT
-        15 => "0000",       -- HLT
-        others => "0000"
-    );
+    impure function init_address_rom return ADDRESS_ROM_TYPE is
+        file text_file : text open read_mode is "instruction_index.txt";
+        variable text_line : line;
+        variable rom_content : ADDRESS_ROM_TYPE;
+    begin
+        for i in 0 to 255 loop 
+            readline(text_file, text_line);
+            bread(text_line, rom_content(i));
+        end loop;
 
-    constant NOP : STD_LOGIC_VECTOR(0 to 23) := "000000000000000000000000";
+        return rom_content;
+    end function;
 
-    constant CONTROL_ROM : CONTROL_ROM_TYPE := (
-       -- FETCH
-    --    0 =>  "0000011011",     -- Phase1:   PC -> MAR
-    --    1 =>  "1111111011",     -- Phase2:   INC PC
-    --    2 =>  "1000101011",     -- Phase3:   RAM -> IR
-       0 =>  "000100000001000000000000",     -- Phase1:   PC -> MAR;
-       1 =>  "000000000000010000000000",     -- Phase2:   INC PC; MDR READ
-       2 =>  "010000000000000010000000",     -- Phase3:   MDR -> IR
-       3 =>  "000000000000000000000000",     -- NOP
-       4 =>  "000000000000000000000000",     -- NOP
-       5 =>  "000000000000000000000000",     -- NOP
-       6 =>  "000000000000000000000000",     -- NOP
-       7 =>  "000000000000000000000000",     -- NOP
-       8 =>  "000000000000000000000000",     -- NOP
-       9 =>  "000000000000000000000000",     -- NOP
-       10 =>  "000000000000000000000000",     -- NOP
-       11 =>  "000000000000000000000000",     -- NOP
-       12 =>  "000000000000000000000000",     -- NOP
-       13 =>  "000000000000000000000000",     -- NOP
-       14 =>  "000000000000000000000000",     -- NOP
-       15 =>  "000000000000000000000000"     -- NOP
+    impure function init_control_rom return CONTROL_ROM_TYPE is
+        file text_file : text open read_mode is "control_rom.txt";
+        variable text_line : line;
+        variable rom_content : CONTROL_ROM_TYPE;
+    begin
+        for i in 0 to 1023 loop 
+            readline(text_file, text_line);
+            bread(text_line, rom_content(i));
+        end loop;
+
+        return rom_content;
+    end function;
+
+    constant ADDRESS_ROM_CONTENTS : ADDRESS_ROM_TYPE := init_address_rom;
+    --(
+        -- 0 => "0011",     -- LDA
+        -- 1 => "0110",     -- ADD
+        -- 2 => "1001",     -- SUB
+        -- 14 => "1100",     -- OUT
+        -- 15 => "0000",       -- HLT
+   --     others => "0000000000"
+    --);
+
+    constant NOP : STD_LOGIC_VECTOR(0 to 20) := "000000000000000000000";
+
+    constant CONTROL_ROM : CONTROL_ROM_TYPE := init_control_rom;
+    --(
+    --    -- FETCH
+    -- --    0 =>  "0000011011",     -- Phase1:   PC -> MAR
+    -- --    1 =>  "1111111011",     -- Phase2:   INC PC
+    -- --    2 =>  "1000101011",     -- Phase3:   RAM -> IR
+    --    0 =>  "000100000001000000000000",     -- Phase1:   PC -> MAR;
+    --    1 =>  "000000000000010000000000",     -- Phase2:   INC PC; MDR READ
+    --    2 =>  "010000000000000010000000",     -- Phase3:   MDR -> IR
+    --    3 =>  "000000000000000000000000",     -- NOP
+    --    4 =>  "000000000000000000000000",     -- NOP
+    --    5 =>  "000000000000000000000000",     -- NOP
+    --    6 =>  "000000000000000000000000",     -- NOP
+    --    7 =>  "000000000000000000000000",     -- NOP
+    --    8 =>  "000000000000000000000000",     -- NOP
+    --    9 =>  "000000000000000000000000",     -- NOP
+    --    10 =>  "000000000000000000000000",     -- NOP
+    --    11 =>  "000000000000000000000000",     -- NOP
+    --    12 =>  "000000000000000000000000",     -- NOP
+    --    13 =>  "000000000000000000000000",     -- NOP
+    --    14 =>  "000000000000000000000000",     -- NOP
+    --    15 =>  "000000000000000000000000"     -- NOP
 
     --    -- LDA
     --    3 =>  "0110011011",     -- LDA Phase4: IR (operand portion) -> MAR
@@ -181,13 +210,13 @@ architecture Behavioral of proc_controller is
     --    14 => NOP,      -- OUT phase 5 NOP
     --    -- unused
     --    15 => NOP       --NOP
-       
-       );
+    --        others => "000000000000000000000"
+    --   );
 
 
-       procedure output_control_word(
+    procedure output_control_word(
         variable stage_var : integer := 1;
-        variable control_word : std_logic_vector(0 to 23)) is
+        variable control_word : std_logic_vector(0 to 20)) is
     begin
         Report "Stage: " & to_string(stage_var) 
             & ", wbus_sel: " & to_string(control_word(0 to 3))
@@ -210,7 +239,6 @@ architecture Behavioral of proc_controller is
     end procedure;
 
 
-
 begin
     HLTBAR <= '0' when opcode = x"76" else
         '1';
@@ -219,8 +247,8 @@ begin
     run_mode_process:
         process(clk, clrbar, opcode)
             variable stage_var : integer := 1;
-            variable control_word_index : std_logic_vector(3 downto 0);
-            variable control_word : std_logic_vector(0 to 23);
+            variable control_word_index : std_logic_vector(9 downto 0);
+            variable control_word : std_logic_vector(0 to 20);
         begin
 
             if CLRBAR = '0' then
@@ -228,7 +256,7 @@ begin
                 stage_sig <= stage_var;
             elsif rising_edge(clk) then
                 if stage_var = 1 then
-                    control_word_index := "0000";
+                    control_word_index := "0000000000";
                 elsif stage_var = 4 then
                     control_word_index := ADDRESS_ROM_CONTENTS(to_integer(unsigned(opcode)));
                 else 
