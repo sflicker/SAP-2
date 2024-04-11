@@ -114,6 +114,10 @@ begin
     clear_out <= S5_clear_start;
     step_out <= S6_step; 
      
+    --TODO this needs to be assigned by the controller
+    ram_write_enable_sig <= '0';
+
+
    -- phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
     
     GENERATING_CLOCK_CONVERTER:

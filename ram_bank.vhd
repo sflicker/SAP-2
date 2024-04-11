@@ -18,6 +18,16 @@ architecture Behavioral of ram_bank is
     attribute ram_style : string;
     type RAM_TYPE is array(0 to 2**16-1) of STD_LOGIC_VECTOR(7 downto 0);
     signal RAM : RAM_TYPE := (
+        0 => "00111110",         -- 0H MVI A, 01H
+        1 => "00000001",
+        2 => "00000110",         -- 2H MVI B, 02H
+        3 => "00000010",         -- 
+        4 => "00001110",         -- 4H MVI C, 03H 
+        5 => "00000011",         -- 
+        6 => "10000000",         -- 6H ADD B
+        7 => "10000001",         -- 7H ADD C
+        8 => "01001100",         -- 8H HLT
+        others => (others => '0'));
         -- default program if necessary/desired
         -- 0 => "00001001",         -- OH   LDA 9H
         -- 1 => "00011010",         -- 1H   ADD AH
@@ -32,20 +42,23 @@ architecture Behavioral of ram_bank is
         -- 10 => "00010100",         -- AH   14H
         -- 11 => "00011000",         -- BH   18H
         -- 12 => "00100000",         -- CH   20H
-        others => (others => '0'));
+        --others => (others => '0'));
     attribute ram_style of RAM : signal is "block";
 begin
     -- dont use clock for ram
 
-    process(addr, write_enable, data_in)
+    process(clk, addr, write_enable, data_in)
     begin
         if rising_edge(clk) then
+            Report "Ram_Bank - write_enable: " & to_string(write_enable) &
+                ", addr: " & to_string(addr);
             if write_enable = '1' then
                 RAM(to_integer(unsigned(addr))) <= data_in;
 --                data_out <= data_in;
             else 
                 data_out <= RAM(to_integer(unsigned(addr)));
             end if;
+            Report "Ram_Bank - data_out: " & to_string(data_out);
         end if;
     end process;
 end Behavioral;
