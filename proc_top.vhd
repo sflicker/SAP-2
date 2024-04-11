@@ -368,7 +368,10 @@ begin
             & ", PC: " & to_string(pc_data_out_sig)
             & ", MAR: " & to_string(mar_addr_sig)
             & ", MDR: " & to_string(mdr_data_out_sig)
-            & ", OPCODE: " & to_string(IR_opcode_sig);
+            & ", OPCODE: " & to_string(IR_opcode_sig)
+            & ", ACC: " & to_string(acc_data_sig)
+            & ", B: " & to_string(b_data_sig)
+            & ", C: " & to_string(c_data_sig);
     end process;
 
     -- OUTPUT_REG : entity work.output
