@@ -26,7 +26,10 @@ architecture Behavioral of ram_bank is
         5 => "00000011",         -- 
         6 => "10000000",         -- 6H ADD B
         7 => "10000001",         -- 7H ADD C
-        8 => "01110110",         -- 8H HLT
+        8 => "00111100",         -- 8H INR A
+        9 => "00000100",         -- 9h INR B
+        10 => "00001100",         -- AH INR c
+        11 => "01110110",         -- BH HLT
         others => (others => '0'));
         -- default program if necessary/desired
         -- 0 => "00001001",         -- OH   LDA 9H
