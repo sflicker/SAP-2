@@ -309,7 +309,7 @@ begin
 
 --                    stage_counter <= stage;
         
-                    if stage_var >= 6 then
+                    if stage_var >= 20 then
                         stage_var := 1;
                         stage_sig <= stage_var;
                     else
