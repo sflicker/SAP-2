@@ -37,6 +37,7 @@ entity ALU is
            op : in STD_LOGIC_VECTOR(2 downto 0);
            input_1 : in STD_LOGIC_VECTOR(7 downto 0);
            input_2 : in STD_LOGIC_VECTOR(7 downto 0);
+           update_status_flags : in STD_LOGIC;
            alu_out : out STD_LOGIC_VECTOR(7 downto 0);
            minus_flag : out STD_LOGIC;
            equal_flag : out STD_LOGIC
@@ -47,10 +48,13 @@ architecture Behavioral of ALU is
     procedure update_flags(
         variable result : STD_LOGIC_VECTOR(7 downto 0);
         signal minus_flag_sig : inout STD_LOGIC;
-        signal equal_flag_sig : inout STD_LOGIC) is
+        signal equal_flag_sig : inout STD_LOGIC;
+        signal update_status_flags_sig : STD_LOGIC) is
     begin
-        minus_flag_sig <= '1' when result(7) = '1' else '0';
-        equal_flag_sig <= '1' when result = "00000000" else '0';
+        if update_status_flags_sig = '1' then
+            minus_flag_sig <= '1' when result(7) = '1' else '0';
+            equal_flag_sig <= '1' when result = "00000000" else '0';
+        end if;
     end procedure;
 begin
 
@@ -61,25 +65,25 @@ begin
             result := (others => '0');
         elsif op = "000" then
             result := std_logic_vector(unsigned(input_1) + unsigned(input_2));
-            update_flags(result, minus_flag, equal_flag);
+            update_flags(result, minus_flag, equal_flag, update_status_flags);
         elsif op = "001" then
             result := std_logic_vector(unsigned(input_1) - unsigned(input_2));
-            update_flags(result, minus_flag, equal_flag);
+            update_flags(result, minus_flag, equal_flag, update_status_flags);
         elsif op = "010" then
             result := std_logic_vector(unsigned(input_2) + 1);
-            update_flags(result, minus_flag, equal_flag);
+            update_flags(result, minus_flag, equal_flag, update_status_flags);
         elsif op = "011" then
             result := std_logic_vector(unsigned(input_2) - 1);
-            update_flags(result, minus_flag, equal_flag);
+            update_flags(result, minus_flag, equal_flag, update_status_flags);
         elsif op = "100" then
             result := std_logic_vector(unsigned(input_1) AND unsigned(input_2));
-            update_flags(result, minus_flag, equal_flag);
+            update_flags(result, minus_flag, equal_flag, update_status_flags);
         elsif op = "101" then
             result := std_logic_vector(unsigned(input_1) OR unsigned(input_2));
-            update_flags(result, minus_flag, equal_flag);
+            update_flags(result, minus_flag, equal_flag, update_status_flags);
         elsif op = "110" then
             result := std_logic_vector(unsigned(input_1) XOR unsigned(input_2));
-            update_flags(result, minus_flag, equal_flag);
+            update_flags(result, minus_flag, equal_flag, update_status_flags);
         elsif op = "111" then
             result := std_logic_vector(not unsigned(input_1));
             -- do not update flags in this case

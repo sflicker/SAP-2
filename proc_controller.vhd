@@ -111,6 +111,7 @@ entity proc_controller is
     ir_operand_high_write_enable : out STD_LOGIC;
     out_1_write_enable : out STD_LOGIC;
     out_2_write_enable : out STD_LOGIC;
+    update_status_flags : out STD_LOGIC;
     
     HLTBar : out STD_LOGIC;
     stage_out : out integer
@@ -121,7 +122,7 @@ architecture Behavioral of proc_controller is
     signal stage_sig : integer := 1;
 
     signal control_word_index_signal : std_logic_vector(9 downto 0);
-    signal control_word_signal : std_logic_vector(0 to 20);
+    signal control_word_signal : std_logic_vector(0 to 21);
 
 --    phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
 
@@ -129,7 +130,7 @@ architecture Behavioral of proc_controller is
 
 
     type ADDRESS_ROM_TYPE is array(0 to 255) of std_logic_vector(9 downto 0);
-    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 20);
+    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 21);
 
     impure function init_address_rom return ADDRESS_ROM_TYPE is
         file text_file : text open read_mode is "instruction_index.txt";
@@ -167,7 +168,7 @@ architecture Behavioral of proc_controller is
    --     others => "0000000000"
     --);
 
-    constant NOP : STD_LOGIC_VECTOR(0 to 20) := "000000000000000000000";
+    constant NOP : STD_LOGIC_VECTOR(0 to 21) := "0000000000000000000000";
 
     constant CONTROL_ROM : CONTROL_ROM_TYPE := init_control_rom;
     --(
@@ -216,7 +217,7 @@ architecture Behavioral of proc_controller is
 
     procedure output_control_word(
         variable stage_var : integer := 1;
-        variable control_word : std_logic_vector(0 to 20)) is
+        variable control_word : std_logic_vector(0 to 21)) is
     begin
         Report "Stage: " & to_string(stage_var) 
             & ", wbus_sel: " & to_string(control_word(0 to 3))
@@ -234,7 +235,8 @@ architecture Behavioral of proc_controller is
             & ", ir_operand_low_write_enable: " & to_string(control_word(17))
             & ", ir_operand_high_write_enable: " & to_string(control_word(18))
             & ", out_1_write_enable: " & to_string(control_word(19))
-            & ", out_2_write_enable: " & to_string(control_word(20));
+            & ", out_2_write_enable: " & to_string(control_word(20))
+            & ", update_status_flags: " & to_string(control_word(21));
 
     end procedure;
 
@@ -248,7 +250,7 @@ begin
         process(clk, clrbar, opcode)
             variable stage_var : integer := 1;
             variable control_word_index : std_logic_vector(9 downto 0);
-            variable control_word : std_logic_vector(0 to 20);
+            variable control_word : std_logic_vector(0 to 21);
         begin
 
             if CLRBAR = '0' then
@@ -298,6 +300,7 @@ begin
                     ir_operand_high_write_enable <= control_word(18);
                     out_1_write_enable <= control_word(19);
                     out_2_write_enable <= control_word(20);
+                    update_status_flags <= control_word(21);
 
                     -- pc_increment <= control_word(3);
                     -- mar_write_enble <= control_word(4);

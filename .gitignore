@@ -1,3 +1,4 @@
 *.out
 *.cf
 *.vcd
+*.gtkw

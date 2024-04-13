@@ -87,6 +87,7 @@ architecture behavior of proc_top is
     signal alu_data_out : STD_LOGIC_VECTOR(7 downto 0);
     signal input_1_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal input_2_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal update_status_flags_sig : STD_LOGIC;
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -265,6 +266,7 @@ begin
             ir_operand_high_write_enable => write_enable_high_sig,
             out_1_write_enable => write_enable_out_1_sig,
             out_2_write_enable => write_enable_out_2_sig,
+            update_status_flags => update_status_flags_sig,
             -- load_MAR_bar => write_enable_mar_sig,
             -- load_IR_opcode_bar => write_enable_ir_opcode_sig,
             -- load_acc_bar => write_enable_acc_sig,
@@ -341,6 +343,7 @@ begin
             input_1 => acc_data_sig,
             input_2 => tmp_data_sig,
             alu_out => alu_data_sig,
+            update_status_flags => update_status_flags_sig,
             minus_flag => minus_flag_sig,
             equal_flag => equal_flag_sig
             );
