@@ -6,8 +6,9 @@ entity clock_controller is
 
     Port(
         clk_in : IN STD_LOGIC;
-        step : IN STD_LOGIC;        -- single step  when high
-        auto : IN STD_LOGIC;        -- manual/auto mode. 0 manual, 1 auto
+        prog_run_switch : IN STD_LOGIC;  -- prog / run switch (prog=0, run=1)
+        step_toggle : IN STD_LOGIC;        -- single step  when high
+        manual_auto_switch : IN STD_LOGIC;        -- manual/auto mode. 0 manual, 1 auto
         hltbar : in STD_LOGIC;      -- 
         clrbar : in STD_LOGIC;
         clk_out : OUT STD_LOGIC;
@@ -28,11 +29,11 @@ begin
     --         pulse_out => clock_pulse
     --     );
     
-    clk_out <= or_out and hltbar;
+    clk_out <= or_out and hltbar and prog_run_switch;
     clkbar_out <= not clk_out;
     or_out <= and1_out or and2_out;
-    and2_out <= not auto and step and hltbar;
-    and1_out <= clk_in and auto and hltbar and clrbar;
+    and2_out <= not manual_auto_switch and step_toggle and hltbar;
+    and1_out <= clk_in and manual_auto_switch and hltbar and clrbar;
     
     
 end architecture behavioral;

@@ -10,12 +10,13 @@ entity proc_top is
     port( clk_ext : in STD_LOGIC;  -- map to FPGA clock will be stepped down to 1HZ
                                 -- for simulation TB should generate clk of 1HZ
           addr_in : STD_LOGIC_VECTOR(15 downto 0);       -- address setting - S1 in ref
-          S2 : STD_LOGIC;       -- prog / run switch
+          S2_prog_run_switch : STD_LOGIC;       -- prog / run switch (prog=0, run=1)
           data_in : STD_LOGIC_VECTOR(7 downto 0);       -- data setting      S3 in ref
           S4 : STD_LOGIC;       -- read/write toggle   -- 1 to write values to ram. 0 to read. needs to be 0 for run mode
           S5_clear_start : STD_LOGIC;       -- start/clear (reset)  -- 
-          S6_step : STD_LOGIC;       -- single step -- 1 for a single step
-          S7_auto : STD_LOGIC;       -- manual/auto mode - 0 for manual, 1 for auto. 
+          S6_step_toggle : STD_LOGIC;       -- single step -- 1 for a single step
+          S7_manual_auto_switch : STD_LOGIC;       -- manual/auto mode - 0 for manual, 1 for auto. 
+          memory_write_toggle : STD_LOGIC;  -- toogle memory write. if in program, write and manual mode.
           running : out STD_LOGIC;
           s7_anodes_out : out STD_LOGIC_VECTOR(3 downto 0);      -- maps to seven segment display
           s7_cathodes_out : out STD_LOGIC_VECTOR(6 downto 0);     -- maps to seven segment display
@@ -26,7 +27,7 @@ entity proc_top is
         attribute MARK_DEBUG : string;
         attribute MARK_DEBUG of S5_clear_start : signal is "true";
         attribute MARK_DEBUG of S6_step : signal is "true";
-        attribute MARK_DEBUG of S7_auto : signal is "true";
+        attribute MARK_DEBUG of S7_manual_auto_switch : signal is "true";
         attribute MARK_DEBUG of running : signal is "true";
     
     end proc_top;
@@ -144,8 +145,9 @@ begin
 
         port map (
             clk_in => clk_ext_converted_sig,
-            step => S6_step,
-            auto => S7_auto,
+            prog_run_switch => S2_prog_run_switch,
+            step_toggle => S6_step_toggle,
+            manual_auto_switch => S7_manual_auto_switch,
             hltbar => hltbar_sig,
             clrbar => clrbar_sig,
             clk_out => clk_sys_sig,
