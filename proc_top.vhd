@@ -9,28 +9,29 @@ entity proc_top is
     );
     port( clk_ext : in STD_LOGIC;  -- map to FPGA clock will be stepped down to 1HZ
                                 -- for simulation TB should generate clk of 1HZ
-          addr_in : STD_LOGIC_VECTOR(15 downto 0);       -- address setting - S1 in ref
+          S1_addr_in : STD_LOGIC_VECTOR(15 downto 0);       -- address setting - S1 in ref
           S2_prog_run_switch : STD_LOGIC;       -- prog / run switch (prog=0, run=1)
-          data_in : STD_LOGIC_VECTOR(7 downto 0);       -- data setting      S3 in ref
-          S4 : STD_LOGIC;       -- read/write toggle   -- 1 to write values to ram. 0 to read. needs to be 0 for run mode
+          S3_data_in : STD_LOGIC_VECTOR(7 downto 0);       -- data setting      S3 in ref
+          S4_read_write_switch : STD_LOGIC;       -- read/write toggle   -- 1 to write values to ram. 0 to read. needs to be 0 for run mode
           S5_clear_start : STD_LOGIC;       -- start/clear (reset)  -- 
           S6_step_toggle : STD_LOGIC;       -- single step -- 1 for a single step
           S7_manual_auto_switch : STD_LOGIC;       -- manual/auto mode - 0 for manual, 1 for auto. 
-          memory_write_toggle : STD_LOGIC;  -- toogle memory write. if in program, write and manual mode.
+          memory_access_clk : STD_LOGIC;  -- toogle memory write. if in program, write and manual mode. this is the ram clock for prog mode. execution mode should use the system clock.
+          data_out : out STD_LOGIC_VECTOR(7 downto 0);
           running : out STD_LOGIC;
           s7_anodes_out : out STD_LOGIC_VECTOR(3 downto 0);      -- maps to seven segment display
           s7_cathodes_out : out STD_LOGIC_VECTOR(6 downto 0);     -- maps to seven segment display
           phase_out : out STD_LOGIC_VECTOR(5 downto 0);
           clear_out : out STD_LOGIC;
           step_out : out STD_LOGIC
-        );
-        attribute MARK_DEBUG : string;
-        attribute MARK_DEBUG of S5_clear_start : signal is "true";
-        attribute MARK_DEBUG of S6_step : signal is "true";
-        attribute MARK_DEBUG of S7_manual_auto_switch : signal is "true";
-        attribute MARK_DEBUG of running : signal is "true";
-    
-    end proc_top;
+    );
+    attribute MARK_DEBUG : string;
+    attribute MARK_DEBUG of S5_clear_start : signal is "true";
+    attribute MARK_DEBUG of S6_step_toggle : signal is "true";
+    attribute MARK_DEBUG of S7_manual_auto_switch : signal is "true";
+    attribute MARK_DEBUG of running : signal is "true";
+
+end proc_top;
 
 architecture behavior of proc_top is
 
@@ -52,6 +53,7 @@ architecture behavior of proc_top is
     signal RAM_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal w_bus_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal mar_addr_sig: STD_LOGIC_VECTOR(15 downto 0);
+    signal ram_addr_in_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal ram_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal b_data_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal c_data_sig : STD_LOGIC_VECTOR(7 downto 0);
@@ -68,6 +70,7 @@ architecture behavior of proc_top is
     signal operand_low_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal operand_high_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal ram_write_enable_sig : STD_LOGIC;
+    signal ram_clk_in_sig : STD_LOGIC;
     signal write_enable_acc_sig : STD_LOGIC;
     signal write_enable_mar_sig : STD_LOGIC;
     signal write_enable_B_sig: STD_LOGIC;
@@ -89,6 +92,7 @@ architecture behavior of proc_top is
     signal input_1_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal input_2_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal update_status_flags_sig : STD_LOGIC;
+    signal data_out_signal : STD_LOGIC_VECTOR(7 downto 0); 
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -104,22 +108,15 @@ architecture behavior of proc_top is
     attribute MARK_DEBUG of acc_data_sig : signal is "true";
     attribute MARK_DEBUG of b_data_sig : signal is "true";
     attribute MARK_DEBUG of output_1_sig : signal is "true";
-
-    
-    
-
 begin
 
     clr_sig <= '1' when S5_clear_start = '1' else '0';
     clrbar_sig <= not clr_sig;
-    running <= S7_auto and hltbar_sig;
+    running <= S7_manual_auto_switch and hltbar_sig;
     clear_out <= S5_clear_start;
-    step_out <= S6_step; 
+    step_out <= S6_step_toggle; 
+    data_out <= ram_data_out_sig;
      
-    --TODO this needs to be assigned by the controller
-    ram_write_enable_sig <= '0';
-
-
    -- phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
     
     GENERATING_CLOCK_CONVERTER:
@@ -238,10 +235,26 @@ begin
                 operand_high_out => operand_high_out_sig
             );
 
+    ram_bank_input : entity work.memory_input_multiplexer            
+        port map(prog_run_select => S2_prog_run_switch,
+                prog_data_in => S3_data_in,
+                run_data_in => mdr_data_out_sig,
+                prog_addr_in => S1_addr_in,
+                run_addr_in => mar_addr_sig,
+                prog_clk_in => memory_access_clk,
+                run_clk_in => clk_sys_sig,
+                prog_write_enable => S4_read_write_switch,
+                run_write_enable => ram_write_enable_sig,
+                select_data_in => ram_data_in_sig,
+                select_addr_in => ram_addr_in_sig,
+                select_clk_in => ram_clk_in_sig,
+                select_write_enable => ram_write_enable_sig
+            );
+
     ram_bank : entity work.ram_bank
         port map(
-            clk => clk_sys_sig,
-            addr => mar_addr_sig,
+            clk => ram_clk_in_sig,
+            addr => ram_addr_in_sig,
             data_in => ram_data_in_sig,
             write_enable => ram_write_enable_sig,
             data_out => ram_data_out_sig

@@ -39,16 +39,14 @@ ghdl -a --std=08 -fsynopsys -v ram_bank.vhd
 ghdl -a --std=08 -fsynopsys -v w_bus.vhd
 ghdl -a --std=08 -fsynopsys -v proc_controller.vhd
 ghdl -a --std=08 -fsynopsys -v proc_top.vhd
-ghdl -a --std=08 -fsynopsys -v proc_top_tb.vhd
+ghdl -a --std=08 -fsynopsys -v proc_top_filebased_tb.vhd
 #
 
-ghdl -e --std=08 -fsynopsys -v proc_top_tb
+ghdl -e --std=08 -fsynopsys -v proc_top_filebased_tb
 
 echo "Running Test Bench"
 #run
-ghdl -r --std=08 -fsynopsys -v proc_top_tb -gTest_Name="PowerOn" --stop-time=1000ns --vcd=PowerOnTest.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_tb -gTest_Name="Execute" --stop-time=20000ns --vcd=ExecuteTest.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_tb -gTest_Name="LoadProgram" --stop-time=20000ns --vcd=LoadProgramTest.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="test_program_1.txt" --stop-time=100000ns --vcd=proc_top_filebased_tb.vcd
 
 
 
