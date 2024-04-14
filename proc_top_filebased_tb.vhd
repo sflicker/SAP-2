@@ -58,6 +58,7 @@ file_based_test : process
     variable l : LINE;
     variable data_in : STD_LOGIC_VECTOR(7 downto 0);
     variable counter : INTEGER := 0;
+    variable address : STD_LOGIC_VECTOR(15 downto 0);
 begin
 
     prog_run_switch_switch_sig <= '0';
@@ -69,8 +70,9 @@ begin
     WHILE NOT ENDFILE(f) loop
         READLINE(f, l);
         BREAD(l, data_in);
-        REPORT "DATA_IN: " & to_string(data_in);
-        addr_in_sig <= std_logic_vector(to_unsigned(counter, addr_in_sig'length));
+        address := std_logic_vector(to_unsigned(counter, addr_in_sig'length));
+        REPORT "ADDR: " & to_string(address) & ", DATA_IN: " & to_string(data_in);
+        addr_in_sig <= address;
         data_in_sig <= data_in;
         read_write_switch_sig <= '1';
         wait for 100 ns;
@@ -92,6 +94,7 @@ begin
     REPORT "Resetting system";
     -- reset/clear system
     clear_start_sig <= '1';
+    read_write_switch_sig <= '0';
     prog_run_switch_switch_sig <= '0';
     manual_auto_switch_sig <= '0';
     step_toggle_sig <= '0';
@@ -101,11 +104,13 @@ begin
 
     REPORT "Starting program execution";
     -- begin program execution
+
     wait for 100 ns;
     prog_run_switch_switch_sig <= '1';
+    wait for 100 ns;
     manual_auto_switch_sig <= '1';
 
-    wait for 300 ns;
+    wait;
 
 end process file_based_test;
 end architecture behavioral;
