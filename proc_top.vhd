@@ -81,7 +81,7 @@ architecture behavior of proc_top is
     signal write_enable_tmp_sig : STD_LOGIC;
     signal write_enable_out_1_sig : STD_LOGIC;
     signal write_enable_out_2_sig : STD_LOGIC;
-    signal pc_data_in_sig : STD_LOGIC_VECTOR(15 downto 0);
+--    signal pc_data_in_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal pc_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal minus_flag_sig : STD_LOGIC;
     signal equal_flag_sig : STD_LOGIC;
@@ -187,7 +187,7 @@ begin
             clr => clr_sig,
             write_enable => write_enable_PC_sig,
             increment => pc_increment_sig,
-            data_in => pc_data_in_sig,
+            data_in => w_bus_sig,
             data_out => pc_data_out_sig
         );
 
