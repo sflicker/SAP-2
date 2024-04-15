@@ -49,6 +49,7 @@ echo "Running Test Bench"
 ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="test_program_1.txt" --stop-time=100000ns --vcd=proc_top_filebased_tb.vcd
 ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="load_accumulator_test.txt" --stop-time=20000ns --vcd=load_accumulator_test.vcd
 ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="store_accumulator_test.txt" --stop-time=20000ns --vcd=store_accumulator_test.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="mvi_test.txt" --stop-time=20000ns --vcd=mvi_test.vcd
 
 
 
