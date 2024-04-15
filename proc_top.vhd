@@ -50,6 +50,7 @@ architecture behavior of proc_top is
     signal alu_data_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal IR_operand_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal IR_opcode_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal ir_clear_sig : STD_LOGIC;
     signal RAM_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal w_bus_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal mar_addr_sig: STD_LOGIC_VECTOR(15 downto 0);
@@ -70,6 +71,7 @@ architecture behavior of proc_top is
     signal operand_low_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal operand_high_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal ram_write_enable_sig : STD_LOGIC;
+    signal selected_ram_write_enable_sig : STD_LOGIC;
     signal ram_clk_in_sig : STD_LOGIC;
     signal write_enable_acc_sig : STD_LOGIC;
     signal write_enable_mar_sig : STD_LOGIC;
@@ -116,6 +118,8 @@ begin
     clear_out <= S5_clear_start;
     step_out <= S6_step_toggle; 
     data_out <= ram_data_out_sig;
+
+    IR_operand_sig <= operand_high_out_sig & operand_low_out_sig;
      
    -- phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
     
@@ -218,7 +222,7 @@ begin
         generic map(8)
         port map(
             clk => clk_sys_sig,
-            clr => clr_sig,
+            clr => ir_clear_sig,
             write_enable => write_enable_ir_opcode_sig,
             data_in => w_bus_sig(7 downto 0),
             data_out => IR_opcode_sig        
@@ -227,7 +231,7 @@ begin
     IR_Operand : entity work.IR_operand_latch
             port map(
                 clk => clk_sys_sig,
-                clr => clr_sig,
+                clr => ir_clear_sig,
                 ir_operand_in => w_bus_sig(7 downto 0),
                 write_enable_low => write_enable_low_sig,
                 write_enable_high => write_enable_high_sig,
@@ -248,7 +252,7 @@ begin
                 select_data_in => ram_data_in_sig,
                 select_addr_in => ram_addr_in_sig,
                 select_clk_in => ram_clk_in_sig,
-                select_write_enable => ram_write_enable_sig
+                select_write_enable => selected_ram_write_enable_sig
             );
 
     ram_bank : entity work.ram_bank
@@ -256,7 +260,7 @@ begin
             clk => ram_clk_in_sig,
             addr => ram_addr_in_sig,
             data_in => ram_data_in_sig,
-            write_enable => ram_write_enable_sig,
+            write_enable => selected_ram_write_enable_sig,
             data_out => ram_data_out_sig
         );
 
@@ -276,9 +280,11 @@ begin
             pc_increment => pc_increment_sig,
             mdr_write_enable => write_enable_mdr_sig,
             mdr_direction => mdr_direction_sig,
+            ram_write_enable => ram_write_enable_sig,
             ir_opcode_write_enable => write_enable_ir_opcode_sig,
             ir_operand_low_write_enable => write_enable_low_sig,
             ir_operand_high_write_enable => write_enable_high_sig,
+            ir_clear => ir_clear_sig,
             out_1_write_enable => write_enable_out_1_sig,
             out_2_write_enable => write_enable_out_2_sig,
             update_status_flags => update_status_flags_sig,
