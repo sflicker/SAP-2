@@ -93,7 +93,9 @@ entity proc_controller is
     clk : in STD_LOGIC;
     clrbar : in STD_LOGIC;
     opcode : in STD_LOGIC_VECTOR(7 downto 0);          -- 8 bit opcodes
-  
+    minus_flag : in STD_LOGIC;
+    equal_flag : in STD_LOGIC;
+
     -- outputs
     wbus_sel : out STD_LOGIC_VECTOR(3 downto 0);
     alu_op : out STD_LOGIC_VECTOR(2 downto 0);
@@ -124,7 +126,7 @@ architecture Behavioral of proc_controller is
     signal stage_sig : integer := 1;
 
     signal control_word_index_signal : std_logic_vector(9 downto 0);
-    signal control_word_signal : std_logic_vector(0 to 23);
+    signal control_word_signal : std_logic_vector(0 to 26);
 
 --    phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
 
@@ -132,7 +134,7 @@ architecture Behavioral of proc_controller is
 
 
     type ADDRESS_ROM_TYPE is array(0 to 255) of std_logic_vector(9 downto 0);
-    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 23);
+    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 26);
 
     impure function init_address_rom return ADDRESS_ROM_TYPE is
         file text_file : text open read_mode is "instruction_index.txt";
@@ -170,7 +172,7 @@ architecture Behavioral of proc_controller is
    --     others => "0000000000"
     --);
 
-    constant NOP : STD_LOGIC_VECTOR(0 to 23) := "000000000000000000000000";
+    constant NOP : STD_LOGIC_VECTOR(0 to 26) := "000000000000000000000000000";
 
     constant CONTROL_ROM : CONTROL_ROM_TYPE := init_control_rom;
     --(
@@ -219,7 +221,7 @@ architecture Behavioral of proc_controller is
 
     procedure output_control_word(
         variable stage_var : integer := 1;
-        variable control_word : std_logic_vector(0 to 23)) is
+        variable control_word : std_logic_vector(0 to 26)) is
     begin
         Report "Stage: " & to_string(stage_var) 
             & ", wbus_sel: " & to_string(control_word(0 to 3))
@@ -254,7 +256,7 @@ begin
         process(clk, clrbar, opcode)
             variable stage_var : integer := 1;
             variable control_word_index : std_logic_vector(9 downto 0);
-            variable control_word : std_logic_vector(0 to 23);
+            variable control_word : std_logic_vector(0 to 26);
         begin
 
             if CLRBAR = '0' then
@@ -277,17 +279,20 @@ begin
                     & ", control_word_index: " & to_string(control_word_index) 
                     & ", control_word: " & to_string(control_word) & ", opcode: " & to_string(opcode);
 
-                if control_word = NOP then
-                    Report "NOP detected moving to next instruction";
-                    stage_var := 1;
-                    stage_sig <= stage_var;
---                    stage_counter <= stage;
+                if control_word = NOP or 
+                    (control_word(24) = '1' and minus_flag = '0') or
+                    (control_word(25) = '1' and equal_flag = '0') or
+                    (control_word(26) = '1' and equal_flag = '1')  then
+                        Report "NOP detected moving to next instruction";
+                        stage_var := 1;
+                        stage_sig <= stage_var;
+    --                    stage_counter <= stage;
                 else
                     --TODO bits need updating for SAP-2 architecture
                     output_control_word(stage_var, control_word);
-
                     control_word_signal <= control_word;
                     control_word_index_signal <= control_word_index;
+
                     wbus_sel <= control_word(0 to 3);
                     alu_op <= control_word(4 to 6);
                     acc_write_enable <= control_word(7);

@@ -11,7 +11,7 @@
     00001100         -- 0AH     INR C           0CH
     00111101         -- 0BH     DCR A           3DH
     00000101         -- 0CH     DCR B           05H
-    00001101         -- 0DH     DCR C           0CH
+    00001101         -- 0DH     DCR C           0DH
     10100000         -- 0EH     ANA B           A0H
     10100001         -- 0FH     ANA C           A1H
     10010000         -- 10H     SUB B           90H

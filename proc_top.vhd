@@ -269,6 +269,8 @@ begin
             clk => clkbar_sys_sig,
             clrbar => clrbar_sig,
             opcode => IR_opcode_sig,
+            minus_flag => minus_flag_sig,
+            equal_flag => equal_flag_sig,
             wbus_sel => wbus_sel_sig,
             alu_op => alu_op_sig,
             acc_write_enable => write_enable_acc_sig,
