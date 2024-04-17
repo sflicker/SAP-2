@@ -14,8 +14,7 @@ use std.textio.all;
                 -- 0110 6H  B Out
                 -- 0111 7H  C Out
                 -- 1000 8H  Tmp Out
-                -- 1001 9H  Input Port 1
-                -- 1002 AH  Input Port 2
+                -- 1001 9H  Input
 --  BITS 4-6    ALU Operation
                 -- 000 0H   ADD
                 -- 001 1H   SUB
@@ -113,9 +112,10 @@ entity proc_controller is
     ir_operand_low_write_enable : out STD_LOGIC;
     ir_operand_high_write_enable : out STD_LOGIC;
     ir_clear : out STD_LOGIC;
-    out_1_write_enable : out STD_LOGIC;
-    out_2_write_enable : out STD_LOGIC;
+    out_port_3_write_enable : out STD_LOGIC;
+    out_port_4_write_enable : out STD_LOGIC;
     update_status_flags : out STD_LOGIC;
+    input_port_select_we : out STD_LOGIC;
     
     HLTBar : out STD_LOGIC;
     stage_out : out integer
@@ -126,7 +126,7 @@ architecture Behavioral of proc_controller is
     signal stage_sig : integer := 1;
 
     signal control_word_index_signal : std_logic_vector(9 downto 0);
-    signal control_word_signal : std_logic_vector(0 to 26);
+    signal control_word_signal : std_logic_vector(0 to 27);
 
 --    phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
 
@@ -134,7 +134,7 @@ architecture Behavioral of proc_controller is
 
 
     type ADDRESS_ROM_TYPE is array(0 to 255) of std_logic_vector(9 downto 0);
-    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 26);
+    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 27);
 
     impure function init_address_rom return ADDRESS_ROM_TYPE is
         file text_file : text open read_mode is "instruction_index.txt";
@@ -172,7 +172,7 @@ architecture Behavioral of proc_controller is
    --     others => "0000000000"
     --);
 
-    constant NOP : STD_LOGIC_VECTOR(0 to 26) := "000000000000000000000000000";
+    constant NOP : STD_LOGIC_VECTOR(0 to 27) := "0000000000000000000000000000";
 
     constant CONTROL_ROM : CONTROL_ROM_TYPE := init_control_rom;
     --(
@@ -221,7 +221,7 @@ architecture Behavioral of proc_controller is
 
     procedure output_control_word(
         variable stage_var : integer := 1;
-        variable control_word : std_logic_vector(0 to 26)) is
+        variable control_word : std_logic_vector(0 to 27)) is
     begin
         Report "Stage: " & to_string(stage_var) 
             & ", wbus_sel: " & to_string(control_word(0 to 3))
@@ -242,7 +242,11 @@ architecture Behavioral of proc_controller is
             & ", ir_clear: " & to_string(control_word(20))
             & ", out_1_write_enable: " & to_string(control_word(21))
             & ", out_2_write_enable: " & to_string(control_word(22))
-            & ", update_status_flags: " & to_string(control_word(23));
+            & ", update_status_flags: " & to_string(control_word(23))
+            & ", not_m_next: " & to_string(control_word(24))
+            & ", not_z_next: " & to_string(control_word(25))
+            & ", not_nz_next: " & to_string(control_word(26))
+            & ", input_port_select_we: " & to_string(control_word(27));
 
     end procedure;
 
@@ -256,7 +260,7 @@ begin
         process(clk, clrbar, opcode)
             variable stage_var : integer := 1;
             variable control_word_index : std_logic_vector(9 downto 0);
-            variable control_word : std_logic_vector(0 to 26);
+            variable control_word : std_logic_vector(0 to 27);
         begin
 
             if CLRBAR = '0' then
@@ -309,9 +313,10 @@ begin
                     ir_operand_low_write_enable <= control_word(18);
                     ir_operand_high_write_enable <= control_word(19);
                     ir_clear <= control_word(20);
-                    out_1_write_enable <= control_word(21);
-                    out_2_write_enable <= control_word(22);
+                    out_port_3_write_enable <= control_word(21);
+                    out_port_4_write_enable <= control_word(22);
                     update_status_flags <= control_word(23);
+                    input_port_select_we <= control_word(27);
 
                     -- pc_increment <= control_word(3);
                     -- mar_write_enble <= control_word(4);

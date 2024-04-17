@@ -9,14 +9,18 @@ entity proc_top is
     );
     port( clk_ext : in STD_LOGIC;  -- map to FPGA clock will be stepped down to 1HZ
                                 -- for simulation TB should generate clk of 1HZ
-          S1_addr_in : STD_LOGIC_VECTOR(15 downto 0);       -- address setting - S1 in ref
-          S2_prog_run_switch : STD_LOGIC;       -- prog / run switch (prog=0, run=1)
-          S3_data_in : STD_LOGIC_VECTOR(7 downto 0);       -- data setting      S3 in ref
-          S4_read_write_switch : STD_LOGIC;       -- read/write toggle   -- 1 to write values to ram. 0 to read. needs to be 0 for run mode
-          S5_clear_start : STD_LOGIC;       -- start/clear (reset)  -- 
-          S6_step_toggle : STD_LOGIC;       -- single step -- 1 for a single step
-          S7_manual_auto_switch : STD_LOGIC;       -- manual/auto mode - 0 for manual, 1 for auto. 
-          memory_access_clk : STD_LOGIC;  -- toogle memory write. if in program, write and manual mode. this is the ram clock for prog mode. execution mode should use the system clock.
+          S1_addr_in : in STD_LOGIC_VECTOR(15 downto 0);       -- address setting - S1 in ref
+          S2_prog_run_switch : in STD_LOGIC;       -- prog / run switch (prog=0, run=1)
+          S3_data_in : in STD_LOGIC_VECTOR(7 downto 0);       -- data setting      S3 in ref
+          S4_read_write_switch : in STD_LOGIC;       -- read/write toggle   -- 1 to write values to ram. 0 to read. needs to be 0 for run mode
+          S5_clear_start : in STD_LOGIC;       -- start/clear (reset)  -- 
+          S6_step_toggle : in STD_LOGIC;       -- single step -- 1 for a single step
+          S7_manual_auto_switch : in STD_LOGIC;       -- manual/auto mode - 0 for manual, 1 for auto. 
+          memory_access_clk : in STD_LOGIC;  -- toogle memory write. if in program, write and manual mode. this is the ram clock for prog mode. execution mode should use the system clock.
+          in_port_1 : in STD_LOGIC_VECTOR(7 downto 0);
+          in_port_2 : in STD_LOGIC_VECTOR(7 downto 0);
+          out_port_3 : out STD_LOGIC_VECTOR(7 downto 0);
+          out_port_4 : out STD_LOGIC_VECTOR(7 downto 0);
           data_out : out STD_LOGIC_VECTOR(7 downto 0);
           running : out STD_LOGIC;
           s7_anodes_out : out STD_LOGIC_VECTOR(3 downto 0);      -- maps to seven segment display
@@ -95,6 +99,8 @@ architecture behavior of proc_top is
     signal input_2_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal update_status_flags_sig : STD_LOGIC;
     signal data_out_signal : STD_LOGIC_VECTOR(7 downto 0); 
+    signal input_port_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal input_port_select_we_sig : STD_LOGIC;
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -163,7 +169,6 @@ begin
     --         pulse_out => clock_pulse
     --     );
 
-
     w_bus : entity work.w_bus
         port map(
             sel => wbus_sel_sig,
@@ -175,8 +180,7 @@ begin
             B_data_in => b_data_sig,
             C_data_in => c_data_sig, 
             tmp_data_in => tmp_data_sig,
-            input_1_data_in => input_1_data_in_sig,
-            input_2_data_in => input_2_data_in_sig,
+            input_port_data_in => input_port_data_in_sig,
             bus_out => w_bus_sig
         );
 
@@ -239,6 +243,17 @@ begin
                 operand_high_out => operand_high_out_sig
             );
 
+    input_port_multipler : entity work.input_port_multiplexer
+        port map(
+            clk => clk_sys_sig,
+            rst => '0',
+            input_port_select_in => w_bus_sig(7 downto 0),
+            input_port_select_we => input_port_select_we_sig,
+            input_port_0 => "00000000",
+            input_port_1 => in_port_1,
+            input_port_2 => in_port_2,
+            input_port_out => input_port_data_in_sig);
+
     ram_bank_input : entity work.memory_input_multiplexer            
         port map(prog_run_select => S2_prog_run_switch,
                 prog_data_in => S3_data_in,
@@ -287,9 +302,10 @@ begin
             ir_operand_low_write_enable => write_enable_low_sig,
             ir_operand_high_write_enable => write_enable_high_sig,
             ir_clear => ir_clear_sig,
-            out_1_write_enable => write_enable_out_1_sig,
-            out_2_write_enable => write_enable_out_2_sig,
+            out_port_3_write_enable => write_enable_out_1_sig,
+            out_port_4_write_enable => write_enable_out_2_sig,
             update_status_flags => update_status_flags_sig,
+            input_port_select_we => input_port_select_we_sig,
             -- load_MAR_bar => write_enable_mar_sig,
             -- load_IR_opcode_bar => write_enable_ir_opcode_sig,
             -- load_acc_bar => write_enable_acc_sig,

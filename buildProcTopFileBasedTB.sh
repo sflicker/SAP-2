@@ -21,6 +21,7 @@ ghdl -a --std=08 -fsynopsys -v segment_decoder.vhd
 ghdl -a --std=08 -fsynopsys -v digit_multiplexer.vhd
 ghdl -a --std=08 -fsynopsys -v display_controller.vhd
 ghdl -a --std=08 -fsynopsys -v memory_input_multiplexer.vhd
+ghdl -a --std=08 -fsynopsys -v input_port_multiplexer.vhd
 #ghdl -a --std=08 -fsynopsys -v ring_counter_6bit.vhd
 
 ghdl -a --std=08 -fsynopsys -v register.vhd

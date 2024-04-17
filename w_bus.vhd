@@ -11,8 +11,7 @@ entity w_bus is
         B_data_in : in STD_LOGIC_VECTOR(7 downto 0);
         C_data_in : in STD_LOGIC_VECTOR(7 downto 0);
         tmp_data_in : in STD_LOGIC_VECTOR(7 downto 0);
-        input_1_data_in : in STD_LOGIC_VECTOR(7 downto 0);
-        input_2_data_in : in STD_LOGIC_VECTOR(7 downto 0);
+        input_port_data_in : in STD_LOGIC_VECTOR(7 downto 0);
         bus_out : out STD_LOGIC_VECTOR(15 downto 0)
   );
 end w_bus;
@@ -31,8 +30,7 @@ begin
             when "0110" => bus_out <= ("00000000" & B_data_in);
             when "0111" => bus_out <= ("00000000" & C_data_in);
             when "1000" => bus_out <= ("00000000" & tmp_data_in);
-            when "1001" => bus_out <= ("00000000" & input_1_data_in);
-            when "1010" => bus_out <= ("00000000" & input_2_data_in);
+            when "1001" => bus_out <= ("00000000" & input_port_data_in);
             when others => bus_out <= (others => '0');
         end case;
     end process;

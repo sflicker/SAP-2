@@ -6,7 +6,7 @@ use std.textio.all;
 
 entity proc_top_filebased_tb is
     Generic (
-        file_name : String := "test_program.txt"
+        file_name : String := "test_program_1.txt"
     );
 end proc_top_filebased_tb;
 
@@ -40,6 +40,8 @@ begin
         S6_step_toggle => step_toggle_sig,
         S7_manual_auto_switch => manual_auto_switch_sig,
         memory_access_clk => memory_access_clk_sig,
+        in_port_1 => "00000000",
+        in_port_2 => "00000000",
         data_out => data_out_sig,
         running => open,
         s7_anodes_out => s7_anodes_out,
