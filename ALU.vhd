@@ -34,7 +34,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity ALU is
     Port ( clr : in STD_LOGIC;
-           op : in STD_LOGIC_VECTOR(2 downto 0);
+           op : in STD_LOGIC_VECTOR(3 downto 0);
            input_1 : in STD_LOGIC_VECTOR(7 downto 0);
            input_2 : in STD_LOGIC_VECTOR(7 downto 0);
            update_status_flags : in STD_LOGIC;
@@ -63,30 +63,34 @@ begin
     begin
         if clr = '1' then
             result := (others => '0');
-        elsif op = "000" then
+        elsif op = "0000" then
             result := std_logic_vector(unsigned(input_1) + unsigned(input_2));
             update_flags(result, minus_flag, equal_flag, update_status_flags);
-        elsif op = "001" then
+        elsif op = "0001" then
             result := std_logic_vector(unsigned(input_1) - unsigned(input_2));
             update_flags(result, minus_flag, equal_flag, update_status_flags);
-        elsif op = "010" then
+        elsif op = "0010" then
             result := std_logic_vector(unsigned(input_2) + 1);
             update_flags(result, minus_flag, equal_flag, update_status_flags);
-        elsif op = "011" then
+        elsif op = "0011" then
             result := std_logic_vector(unsigned(input_2) - 1);
             update_flags(result, minus_flag, equal_flag, update_status_flags);
-        elsif op = "100" then
+        elsif op = "0100" then
             result := std_logic_vector(unsigned(input_1) AND unsigned(input_2));
             update_flags(result, minus_flag, equal_flag, update_status_flags);
-        elsif op = "101" then
+        elsif op = "0101" then
             result := std_logic_vector(unsigned(input_1) OR unsigned(input_2));
             update_flags(result, minus_flag, equal_flag, update_status_flags);
-        elsif op = "110" then
+        elsif op = "0110" then
             result := std_logic_vector(unsigned(input_1) XOR unsigned(input_2));
             update_flags(result, minus_flag, equal_flag, update_status_flags);
-        elsif op = "111" then
-            result := std_logic_vector(not unsigned(input_1));
+        elsif op = "0111" then
+            result := std_logic_vector(not unsigned(input_2));
             -- do not update flags in this case
+        elsif op = "1000" then -- rotate left
+            result := input_2(6 downto 0) & input_2(7);
+        elsif op = "1001" then -- rotate right
+            result := input_2(0) & input_2(7 downto 1);
         else
             result := (others => '0');
         end if;

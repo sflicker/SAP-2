@@ -16,14 +16,16 @@ use std.textio.all;
                 -- 1000 8H  Tmp Out
                 -- 1001 9H  Input
 --  BITS 4-6    ALU Operation
-                -- 000 0H   ADD
-                -- 001 1H   SUB
-                -- 010 2H   INCREMENT
-                -- 011 3H   DECREMENT
-                -- 100 4H   AND
-                -- 101 5H   OR
-                -- 110 6H   XOR
-                -- 111 7H   Complement                
+                -- 0000 0H   ADD
+                -- 0001 1H   SUB
+                -- 0010 2H   INCREMENT
+                -- 0011 3H   DECREMENT
+                -- 0100 4H   AND
+                -- 0101 5H   OR
+                -- 0110 6H   XOR
+                -- 0111 7H   Complement
+                -- 1000 8H   RAL
+                -- 1001 9H   RAR                
 --  BIT 7       ACCUMULATOR Write Enable
 --  BIT 8       B Write Enable
 --  BIT 9       C Write Enable
@@ -82,10 +84,6 @@ use std.textio.all;
 -- XRA C        A9      ; ACC <= ACC XOR C      ; flags also set
 -- XRI byte     EE      ; ACC <= ACC xor byte   ; flags also set
 
-
-
-
-
 entity proc_controller is
   Port (
     -- inputs
@@ -97,7 +95,7 @@ entity proc_controller is
 
     -- outputs
     wbus_sel : out STD_LOGIC_VECTOR(3 downto 0);
-    alu_op : out STD_LOGIC_VECTOR(2 downto 0);
+    alu_op : out STD_LOGIC_VECTOR(3 downto 0);
     acc_write_enable : out STD_LOGIC;
     b_write_enable : out STD_LOGIC;
     c_write_enable : out STD_LOGIC;
@@ -126,7 +124,7 @@ architecture Behavioral of proc_controller is
     signal stage_sig : integer := 1;
 
     signal control_word_index_signal : std_logic_vector(9 downto 0);
-    signal control_word_signal : std_logic_vector(0 to 27);
+    signal control_word_signal : std_logic_vector(0 to 28);
 
 --    phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
 
@@ -134,7 +132,7 @@ architecture Behavioral of proc_controller is
 
 
     type ADDRESS_ROM_TYPE is array(0 to 255) of std_logic_vector(9 downto 0);
-    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 27);
+    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 28);
 
     impure function init_address_rom return ADDRESS_ROM_TYPE is
         file text_file : text open read_mode is "instruction_index.txt";
@@ -163,93 +161,41 @@ architecture Behavioral of proc_controller is
     end function;
 
     constant ADDRESS_ROM_CONTENTS : ADDRESS_ROM_TYPE := init_address_rom;
-    --(
-        -- 0 => "0011",     -- LDA
-        -- 1 => "0110",     -- ADD
-        -- 2 => "1001",     -- SUB
-        -- 14 => "1100",     -- OUT
-        -- 15 => "0000",       -- HLT
-   --     others => "0000000000"
-    --);
 
-    constant NOP : STD_LOGIC_VECTOR(0 to 27) := "0000000000000000000000000000";
+    constant NOP : STD_LOGIC_VECTOR(0 to 28) := "00000000000000000000000000000";
 
     constant CONTROL_ROM : CONTROL_ROM_TYPE := init_control_rom;
-    --(
-    --    -- FETCH
-    -- --    0 =>  "0000011011",     -- Phase1:   PC -> MAR
-    -- --    1 =>  "1111111011",     -- Phase2:   INC PC
-    -- --    2 =>  "1000101011",     -- Phase3:   RAM -> IR
-    --    0 =>  "000100000001000000000000",     -- Phase1:   PC -> MAR;
-    --    1 =>  "000000000000010000000000",     -- Phase2:   INC PC; MDR READ
-    --    2 =>  "010000000000000010000000",     -- Phase3:   MDR -> IR
-    --    3 =>  "000000000000000000000000",     -- NOP
-    --    4 =>  "000000000000000000000000",     -- NOP
-    --    5 =>  "000000000000000000000000",     -- NOP
-    --    6 =>  "000000000000000000000000",     -- NOP
-    --    7 =>  "000000000000000000000000",     -- NOP
-    --    8 =>  "000000000000000000000000",     -- NOP
-    --    9 =>  "000000000000000000000000",     -- NOP
-    --    10 =>  "000000000000000000000000",     -- NOP
-    --    11 =>  "000000000000000000000000",     -- NOP
-    --    12 =>  "000000000000000000000000",     -- NOP
-    --    13 =>  "000000000000000000000000",     -- NOP
-    --    14 =>  "000000000000000000000000",     -- NOP
-    --    15 =>  "000000000000000000000000"     -- NOP
-
-    --    -- LDA
-    --    3 =>  "0110011011",     -- LDA Phase4: IR (operand portion) -> MAR
-    --    4 =>  "1000110011",     -- LDA Phase5: RAM -> A
-    --    5 =>  NOP,     -- LDA Phase6: NOP
-    --    -- ADD
-    --    6 =>  "0110011011",      -- ADD Phase4: IR(operand portion) -> MAR
-    --    7 =>  "1000111001",      -- ADD Phase5: RAM -> B, SU -> 0
-    --    8 =>  "0100110011",      -- ADD Phase6: ALU -> A
-    --    -- SUB
-    --    9 =>  "0110011111",      -- SUB Phase4: IR(operand portion) -> MAR
-    --    10 => "1000111101",      -- SUB Phase5: RAM -> B, SU => 1
-    --    11 => "0100110111",      -- --SUB phase6: ALU => A
-    --    -- OUT
-    --    12 => "0010111010",      -- OUT phase 4  A => OUT
-    --    13 => NOP,      -- OUT phase 5 NOP
-    --    14 => NOP,      -- OUT phase 5 NOP
-    --    -- unused
-    --    15 => NOP       --NOP
-    --        others => "000000000000000000000"
-    --   );
-
 
     procedure output_control_word(
         variable stage_var : integer := 1;
-        variable control_word : std_logic_vector(0 to 27)) is
+        variable control_word : std_logic_vector(0 to 28)) is
     begin
         Report "Stage: " & to_string(stage_var) 
             & ", wbus_sel: " & to_string(control_word(0 to 3))
-            & ", alu_op: " & to_string(control_word(4 to 6))
-            & ", acc_write_enable: " & to_string(control_word(7))
-            & ", b_write_enable: " & to_string(control_word(8))
-            & ", c_write_enable: " & to_string(control_word(9))
-            & ", tmp_write_enable: " & to_string(control_word(10))
-            & ", mar_write_enable: " & to_string(control_word(11))
-            & ", pc_write_enable: " & to_string(control_word(12))
-            & ", pc_increment: " & to_string(control_word(13))
-            & ", mdr_write_enable: " & to_string(control_word(14))
-            & ", mdr_direction: " & to_string(control_word(15))
-            & ", ram_write_enable: " & to_string(control_word(16))
-            & ", ir_opcode_write_enable: " & to_string(control_word(17))
-            & ", ir_operand_low_write_enable: " & to_string(control_word(18))
-            & ", ir_operand_high_write_enable: " & to_string(control_word(19))
-            & ", ir_clear: " & to_string(control_word(20))
-            & ", out_1_write_enable: " & to_string(control_word(21))
-            & ", out_2_write_enable: " & to_string(control_word(22))
-            & ", update_status_flags: " & to_string(control_word(23))
-            & ", not_m_next: " & to_string(control_word(24))
-            & ", not_z_next: " & to_string(control_word(25))
-            & ", not_nz_next: " & to_string(control_word(26))
-            & ", input_port_select_we: " & to_string(control_word(27));
+            & ", alu_op: " & to_string(control_word(4 to 7))
+            & ", acc_write_enable: " & to_string(control_word(8))
+            & ", b_write_enable: " & to_string(control_word(9))
+            & ", c_write_enable: " & to_string(control_word(10))
+            & ", tmp_write_enable: " & to_string(control_word(11))
+            & ", mar_write_enable: " & to_string(control_word(12))
+            & ", pc_write_enable: " & to_string(control_word(13))
+            & ", pc_increment: " & to_string(control_word(14))
+            & ", mdr_write_enable: " & to_string(control_word(15))
+            & ", mdr_direction: " & to_string(control_word(16))
+            & ", ram_write_enable: " & to_string(control_word(17))
+            & ", ir_opcode_write_enable: " & to_string(control_word(18))
+            & ", ir_operand_low_write_enable: " & to_string(control_word(19))
+            & ", ir_operand_high_write_enable: " & to_string(control_word(20))
+            & ", ir_clear: " & to_string(control_word(21))
+            & ", out_1_write_enable: " & to_string(control_word(22))
+            & ", out_2_write_enable: " & to_string(control_word(23))
+            & ", update_status_flags: " & to_string(control_word(24))
+            & ", not_m_next: " & to_string(control_word(25))
+            & ", not_z_next: " & to_string(control_word(26))
+            & ", not_nz_next: " & to_string(control_word(27))
+            & ", input_port_select_we: " & to_string(control_word(28));
 
     end procedure;
-
 
 begin
     HLTBAR <= '0' when opcode = x"76" else
@@ -260,7 +206,7 @@ begin
         process(clk, clrbar, opcode)
             variable stage_var : integer := 1;
             variable control_word_index : std_logic_vector(9 downto 0);
-            variable control_word : std_logic_vector(0 to 27);
+            variable control_word : std_logic_vector(0 to 28);
         begin
 
             if CLRBAR = '0' then
@@ -278,15 +224,14 @@ begin
                 Report "Control Word Index: " & to_string(control_word_index);
                 control_word := CONTROL_ROM(to_integer(unsigned(control_word_index)));
 
-
                 Report "Stage: " & to_string(stage_var) 
                     & ", control_word_index: " & to_string(control_word_index) 
                     & ", control_word: " & to_string(control_word) & ", opcode: " & to_string(opcode);
 
                 if control_word = NOP or 
-                    (control_word(24) = '1' and minus_flag = '0') or
-                    (control_word(25) = '1' and equal_flag = '0') or
-                    (control_word(26) = '1' and equal_flag = '1')  then
+                    (control_word(25) = '1' and minus_flag = '0') or
+                    (control_word(26) = '1' and equal_flag = '0') or
+                    (control_word(27) = '1' and equal_flag = '1')  then
                         Report "NOP detected moving to next instruction";
                         stage_var := 1;
                         stage_sig <= stage_var;
@@ -298,25 +243,25 @@ begin
                     control_word_index_signal <= control_word_index;
 
                     wbus_sel <= control_word(0 to 3);
-                    alu_op <= control_word(4 to 6);
-                    acc_write_enable <= control_word(7);
-                    b_write_enable <= control_word(8);
-                    c_write_enable <= control_word(9);
-                    tmp_write_enable <= control_word(10);
-                    mar_write_enable <= control_word(11);
-                    pc_write_enable <= control_word(12);
-                    pc_increment <= control_word(13);
-                    mdr_write_enable <= control_word(14);
-                    mdr_direction <= control_word(15);
-                    ram_write_enable <= control_word(16);                    
-                    ir_opcode_write_enable <= control_word(17);
-                    ir_operand_low_write_enable <= control_word(18);
-                    ir_operand_high_write_enable <= control_word(19);
-                    ir_clear <= control_word(20);
-                    out_port_3_write_enable <= control_word(21);
-                    out_port_4_write_enable <= control_word(22);
-                    update_status_flags <= control_word(23);
-                    input_port_select_we <= control_word(27);
+                    alu_op <= control_word(4 to 7);
+                    acc_write_enable <= control_word(8);
+                    b_write_enable <= control_word(9);
+                    c_write_enable <= control_word(10);
+                    tmp_write_enable <= control_word(11);
+                    mar_write_enable <= control_word(12);
+                    pc_write_enable <= control_word(13);
+                    pc_increment <= control_word(14);
+                    mdr_write_enable <= control_word(15);
+                    mdr_direction <= control_word(16);
+                    ram_write_enable <= control_word(17);                    
+                    ir_opcode_write_enable <= control_word(18);
+                    ir_operand_low_write_enable <= control_word(19);
+                    ir_operand_high_write_enable <= control_word(20);
+                    ir_clear <= control_word(21);
+                    out_port_3_write_enable <= control_word(22);
+                    out_port_4_write_enable <= control_word(23);
+                    update_status_flags <= control_word(24);
+                    input_port_select_we <= control_word(28);
 
                     -- pc_increment <= control_word(3);
                     -- mar_write_enble <= control_word(4);
