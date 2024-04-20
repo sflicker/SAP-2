@@ -2,7 +2,6 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-
 entity proc_top is
     generic (
         SIMULATION_MODE : boolean := false
@@ -83,8 +82,11 @@ architecture behavior of proc_top is
     signal write_enable_C_sig : STD_LOGIC;
     signal write_enable_output_sig : STD_LOGIC;
     signal write_enable_tmp_sig : STD_LOGIC;
-    signal write_enable_out_1_sig : STD_LOGIC;
-    signal write_enable_out_2_sig : STD_LOGIC;
+--    signal write_enable_out_1_sig : STD_LOGIC;
+--    signal write_enable_out_2_sig : STD_LOGIC;
+--    signal output_port_we_select_sig : STD_LOGIC(7 downto 0);
+    signal out_port_3_write_enable_sig : STD_LOGIC;
+    signal out_port_4_write_enable_sig : STD_LOGIC;
 --    signal pc_data_in_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal pc_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
     signal minus_flag_sig : STD_LOGIC;
@@ -99,8 +101,9 @@ architecture behavior of proc_top is
     signal input_2_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal update_status_flags_sig : STD_LOGIC;
     signal data_out_signal : STD_LOGIC_VECTOR(7 downto 0); 
-    signal input_port_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
-    signal input_port_select_we_sig : STD_LOGIC;
+    signal input_port_1_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal input_port_2_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal controller_wait_sig : STD_LOGIC;
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -180,7 +183,8 @@ begin
             B_data_in => b_data_sig,
             C_data_in => c_data_sig, 
             tmp_data_in => tmp_data_sig,
-            input_port_data_in => input_port_data_in_sig,
+            input_port_1_data_in => input_port_1_data_in_sig,
+            input_port_2_data_in => input_port_2_data_in_sig,
             bus_out => w_bus_sig
         );
 
@@ -243,32 +247,28 @@ begin
                 operand_high_out => operand_high_out_sig
             );
 
-    input_port_multipler : entity work.input_port_multiplexer
-        port map(
-            clk => clk_sys_sig,
-            rst => '0',
-            input_port_select_in => w_bus_sig(7 downto 0),
-            input_port_select_we => input_port_select_we_sig,
-            input_port_0 => "00000000",
-            input_port_1 => in_port_1,
-            input_port_2 => in_port_2,
-            input_port_out => input_port_data_in_sig);
+    -- input_port_multipler : entity work.input_port_multiplexer
+    --     port map(
+    --         input_port_select_in => ,
+    --         input_port_1 => in_port_1,
+    --         input_port_2 => in_port_2,
+    --         input_port_out => input_port_data_in_sig);
 
-    ram_bank_input : entity work.memory_input_multiplexer            
-        port map(prog_run_select => S2_prog_run_switch,
-                prog_data_in => S3_data_in,
-                run_data_in => mdr_data_out_sig,
-                prog_addr_in => S1_addr_in,
-                run_addr_in => mar_addr_sig,
-                prog_clk_in => memory_access_clk,
-                run_clk_in => clk_sys_sig,
-                prog_write_enable => S4_read_write_switch,
-                run_write_enable => ram_write_enable_sig,
-                select_data_in => ram_data_in_sig,
-                select_addr_in => ram_addr_in_sig,
-                select_clk_in => ram_clk_in_sig,
-                select_write_enable => selected_ram_write_enable_sig
-            );
+    -- ram_bank_input : entity work.memory_input_multiplexer            
+    --     port map(prog_run_select => S2_prog_run_switch,
+    --             prog_data_in => S3_data_in,
+    --             run_data_in => mdr_data_out_sig,
+    --             prog_addr_in => S1_addr_in,
+    --             run_addr_in => mar_addr_sig,
+    --             prog_clk_in => memory_access_clk,
+    --             run_clk_in => clk_sys_sig,
+    --             prog_write_enable => S4_read_write_switch,
+    --             run_write_enable => ram_write_enable_sig,
+    --             select_data_in => ram_data_in_sig,
+    --             select_addr_in => ram_addr_in_sig,
+    --             select_clk_in => ram_clk_in_sig,
+    --             select_write_enable => selected_ram_write_enable_sig
+    --         );
 
     ram_bank : entity work.ram_bank
         port map(
@@ -302,10 +302,12 @@ begin
             ir_operand_low_write_enable => write_enable_low_sig,
             ir_operand_high_write_enable => write_enable_high_sig,
             ir_clear => ir_clear_sig,
-            out_port_3_write_enable => write_enable_out_1_sig,
-            out_port_4_write_enable => write_enable_out_2_sig,
+            out_port_3_write_enable => out_port_3_write_enable_sig,
+            out_port_4_write_enable => out_port_4_write_enable_sig,
+--            out_port_3_write_enable => write_enable_out_1_sig,
+--            out_port_4_write_enable => write_enable_out_2_sig,
             update_status_flags => update_status_flags_sig,
-            input_port_select_we => input_port_select_we_sig,
+            controller_wait => controller_wait_sig,
             -- load_MAR_bar => write_enable_mar_sig,
             -- load_IR_opcode_bar => write_enable_ir_opcode_sig,
             -- load_acc_bar => write_enable_acc_sig,
@@ -387,26 +389,44 @@ begin
             equal_flag => equal_flag_sig
             );
 
+    -- OUTPUT_WE_SELECTOR : entity output_port_we_selector
+    --         port map (
+    --             output_port_we_select => output_port_we_select_sig,
+    --             output_port_3_we => write_enable_out_1_sig,
+    --             output_port_4_we => write_enable_out_2_sig
+    --         );
 
-    OUTPUT_1 : entity work.DataRegister
+    OUTPUT_PORT_3 : entity work.DataRegister
     Generic Map(8)
     port map (
         clk => clk_sys_sig,
         clr => clr_sig,
-        write_enable => write_enable_out_1_sig,
+        write_enable => out_port_3_write_enable_sig,
         data_in => w_bus_sig(7 downto 0),
         data_out => output_1_sig
     );
 
-    OUTPUT_2 : entity work.DataRegister
+    OUTPUT_PORT_4 : entity work.DataRegister
     Generic Map(8)
     port map (
         clk => clk_sys_sig,
         clr => clr_sig,
-        write_enable => write_enable_out_2_sig,
+        write_enable => out_port_4_write_enable_sig,
         data_in => w_bus_sig(7 downto 0),
         data_out => output_2_sig
     );
+
+    IO : entity work.IO_interface
+        Port map(
+            clk => clk_sys_sig,
+            rst => clr_sig,
+            opcode => IR_opcode_sig,
+            portnum => IR_operand_sig(2 downto 0),
+            bus_selector => wbus_sel_sig,
+            acc_write_enable => write_enable_acc_sig,
+            output1_write_enable => out_port_3_write_enable_sig,
+            output2_write_enable => out_port_4_write_enable_sig
+        );
 
     REGISTER_LOG : process(clk_sys_sig)
     begin

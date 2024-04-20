@@ -14,7 +14,8 @@ use std.textio.all;
                 -- 0110 6H  B Out
                 -- 0111 7H  C Out
                 -- 1000 8H  Tmp Out
-                -- 1001 9H  Input
+                -- 1001 9H  Input 1
+                -- 1002 AH  Input 2
 --  BITS 4-6    ALU Operation
                 -- 0000 0H   ADD
                 -- 0001 1H   SUB
@@ -113,7 +114,7 @@ entity proc_controller is
     out_port_3_write_enable : out STD_LOGIC;
     out_port_4_write_enable : out STD_LOGIC;
     update_status_flags : out STD_LOGIC;
-    input_port_select_we : out STD_LOGIC;
+    controller_wait : out STD_LOGIC;
     
     HLTBar : out STD_LOGIC;
     stage_out : out integer
@@ -193,7 +194,7 @@ architecture Behavioral of proc_controller is
             & ", not_m_next: " & to_string(control_word(25))
             & ", not_z_next: " & to_string(control_word(26))
             & ", not_nz_next: " & to_string(control_word(27))
-            & ", input_port_select_we: " & to_string(control_word(28));
+            & ", controller_wait: " & to_string(control_word(28));
 
     end procedure;
 
@@ -261,7 +262,7 @@ begin
                     out_port_3_write_enable <= control_word(22);
                     out_port_4_write_enable <= control_word(23);
                     update_status_flags <= control_word(24);
-                    input_port_select_we <= control_word(28);
+                    controller_wait <= control_word(28);
 
                     -- pc_increment <= control_word(3);
                     -- mar_write_enble <= control_word(4);
