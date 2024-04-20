@@ -17,7 +17,8 @@ entity IO_interface is
         bus_selector : OUT STD_LOGIC_VECTOR(3 downto 0);
         acc_write_enable : OUT STD_LOGIC;
         output1_write_enable : OUT STD_LOGIC;
-        output2_write_enable : OUT STD_LOGIC
+        output2_write_enable : OUT STD_LOGIC;
+        active : OUT STD_LOGIC
     );
 end IO_interface;
 
@@ -33,6 +34,7 @@ begin
   --          select_input_out <= (others => '0');
   --          output1 <= (others => '0');
   --          output2 <= (others => '0');
+            active <= '0';
         elsif rising_edge(clk) then
             -- DB is opcode for IN byte
             -- D3 is opcode for OUT byte
@@ -55,6 +57,7 @@ begin
 --                        output2_write_enable <= '1';
                 end case;
             elsif opcode = OUT_byte_OPCODE then
+                active <= '1';
                 case portnum is
                     -- port 3
                     when "011" =>
@@ -75,7 +78,10 @@ begin
 --                        output1 <= (others => '0');
 --                        output2 <= (others => '0');
                 end case;
+            else
+                active <= '0';
             end if;
+
         end if;
     end process;
 end behavioral;

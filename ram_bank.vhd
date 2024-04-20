@@ -25,16 +25,20 @@ begin
     -- dont use clock for ram
 
     process(clk, addr, write_enable, data_in)
+        variable data_var : STD_LOGIC_VECTOR(7 downto 0);
     begin
         if rising_edge(clk) then
             Report "Ram_Bank - write_enable: " & to_string(write_enable) &
-                ", addr: " & to_string(addr);
+                ", addr: " & to_string(addr) & ", data_in: " & to_string(data_in);
             if write_enable = '1' then
+                Report "Writing Data to Memory";
                 RAM(to_integer(unsigned(addr))) <= data_in;
             else 
-                data_out <= RAM(to_integer(unsigned(addr)));
+                data_var := RAM(to_integer(unsigned(addr)));
+                data_out <= data_var;
+                Report "Reading Data from Memory - data: " & to_string(data_var);
             end if;
-            Report "Ram_Bank - data_out: " & to_string(data_out);
+--            Report "Ram_Bank - data_out: " & to_string(data_out);
         end if;
     end process;
 end Behavioral;

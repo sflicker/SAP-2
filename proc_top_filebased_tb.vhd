@@ -23,9 +23,17 @@ architecture behavioral of proc_top_filebased_tb is
     signal s7_anodes_out : STD_LOGIC_VECTOR(3 downto 0);
     signal s7_cathodes_out : STD_LOGIC_VECTOR(6 downto 0);
     signal data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal input_1_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal input_2_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal output_3_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal output_4_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal running_sig : STD_LOGIC;
 
 begin
     
+    input_1_sig <= (others => '0');
+    input_2_sig <= (others => '0');
+
     proc_top : entity work.proc_top
     generic map (
         SIMULATION_MODE => true
@@ -33,17 +41,19 @@ begin
     port map(
         clk_ext => clk_sig,
         S1_addr_in => addr_in_sig,
-        S3_data_in => data_in_sig,
         S2_prog_run_switch => prog_run_switch_switch_sig,
+        S3_data_in => data_in_sig,
         S4_read_write_switch => read_write_switch_sig,
         S5_clear_start => clear_start_sig,
         S6_step_toggle => step_toggle_sig,
         S7_manual_auto_switch => manual_auto_switch_sig,
         memory_access_clk => memory_access_clk_sig,
-        in_port_1 => "00000000",
-        in_port_2 => "00000000",
+        in_port_1 => input_1_sig,
+        in_port_2 => input_2_sig,
+        out_port_3 => output_3_sig,
+        out_port_4 => output_4_sig,
         data_out => data_out_sig,
-        running => open,
+        running => running_sig,
         s7_anodes_out => s7_anodes_out,
         s7_cathodes_out => s7_cathodes_out
     );

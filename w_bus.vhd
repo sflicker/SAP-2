@@ -2,7 +2,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity w_bus is
-  Port (sel : in STD_LOGIC_VECTOR(3 downto 0); 
+  Port (sel_default : in STD_LOGIC_VECTOR(3 downto 0); 
+        sel_io : in STD_LOGIC_VECTOR(3 downto 0);
+        io_active : in STD_LOGIC;
         pc_addr_in : in STD_LOGIC_VECTOR(15 downto 0);
         IR_operand_in : in STD_LOGIC_VECTOR(15 downto 0);
         acc_data_in : in STD_LOGIC_VECTOR(7 downto 0);
@@ -18,10 +20,14 @@ entity w_bus is
 end w_bus;
 
 architecture Behavioral of w_bus is
+    signal sel_active_sig : STD_LOGIC_VECTOR(3 downto 0);
 begin
-    process(sel)
+
+    sel_active_sig <= sel_default when io_active = '0' else sel_io;
+
+    process(sel_active_sig)
     begin
-        case sel is
+        case sel_active_sig is
             when "0000" => bus_out <= (others => '0');  -- zero
             when "0001" => bus_out <= pc_addr_in;
             when "0010" => bus_out <= IR_operand_in;
