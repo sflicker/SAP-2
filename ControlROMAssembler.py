@@ -8,6 +8,7 @@ def read_control_signals(filename):
     with open(filename, newline='') as csvfile:
         reader = csv.reader(csvfile)
         next(reader)  # skip the format line
+        next(reader) 
         return [row for row in reader]
     
 def write_control_rom_settings(control_signals):
@@ -42,6 +43,7 @@ def build_and_write_instruction_index(control_rom_data, nop_index):
     for fields in control_rom_data:
         str_opcode = fields[2]
         row_number = fields[0]
+        print ("str_opcode: ", str_opcode, ", row_number: ", row_number)
         if str_opcode: 
             hex_opcode = int(str_opcode, 16)
             if hex_opcode not in first_opcode_index:

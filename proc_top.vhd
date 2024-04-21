@@ -427,7 +427,8 @@ begin
             opcode => IR_opcode_sig,
             portnum => IR_operand_sig(2 downto 0),
             bus_selector => wbus_sel_io_sig,
-            acc_write_enable => write_enable_acc_sig,
+--            acc_write_enable => write_enable_acc_sig,
+            acc_write_enable => open,
             output1_write_enable => out_port_3_write_enable_sig,
             output2_write_enable => out_port_4_write_enable_sig,
             active => io_active_sig

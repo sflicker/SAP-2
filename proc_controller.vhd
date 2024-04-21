@@ -4,7 +4,7 @@ use IEEE.numeric_std.all;
 use std.textio.all;
   
 -- CONTROL WORD
--- BITS 0-3     W BUS Selector
+-- BITS 0-3     W BUS Selector  - these are for components whose outputs are bus connected
                 -- 0000 0H  All Zeros
                 -- 0001 1H  PC
                 -- 0010 2H  IR Operand
@@ -16,32 +16,40 @@ use std.textio.all;
                 -- 1000 8H  Tmp Out
                 -- 1001 9H  Input 1
                 -- 1002 AH  Input 2
---  BITS 4-6    ALU Operation
-                -- 0000 0H   ADD
-                -- 0001 1H   SUB
-                -- 0010 2H   INCREMENT
-                -- 0011 3H   DECREMENT
-                -- 0100 4H   AND
-                -- 0101 5H   OR
-                -- 0110 6H   XOR
-                -- 0111 7H   Complement
-                -- 1000 8H   RAL
-                -- 1001 9H   RAR                
---  BIT 7       ACCUMULATOR Write Enable
---  BIT 8       B Write Enable
---  BIT 9       C Write Enable
---  BIT A       TMP Write Enable
---  BIT B       MAR Write Enable
---  BIT C       PC Write Enable
---  BIT D       PC Increment
---  BIT E       MDR Write Enable
---  BIT F       MDR Direction             0 READ, 1 WRITE
---  BIT 10      IR Write Enable
---  BIT 11      IR Operand Low Write Enable
---  BIT 12      IR Operand High Write Enable
---  BIT 13      OUT Port 1 Write Enable
---  BIT 14      OUT Port 2 Write Enable
---  BITS 15-17  UNUSED
+                -- WE Selector
+--  BITS 4-7    ALU Operation
+                -- 0000 OH   ALU NOP
+                -- 0001 1H   ADD
+                -- 0010 2H   SUB
+                -- 0011 3H   INCREMENT
+                -- 0100 4H   DECREMENT
+                -- 0101 5H   AND
+                -- 0110 6H   OR
+                -- 0111 7H   XOR
+                -- 1000 8H   Complement
+                -- 1001 9H   RAL
+                -- 1010 AH   RAR
+--  BIT 8       PC Increment
+--  BIT 9       IR Clear
+--  BIT A       ACCUMULATOR Write Enable         -- next 12 bits are WE for components whose inputs are bus connected
+--  BIT B       B Write Enable
+--  BIT C       C Write Enable
+--  BIT D       TMP Write Enable
+--  BIT E       MAR Write Enable
+--  BIT F       PC Write Enable
+--  BIT 10      MDR-TM Write Enable
+--  BIT 11      IR Write Enable
+--  BIT 12      IR Operand Low Write Enable
+--  BIT 14      IR Operand High Write Enable
+--  BIT 15      OUT Port 1 Write Enable
+--  BIT 16      OUT Port 2 Write Enable
+--  BIT 17      MDR-FM WE                       -- WE for components not connected to 
+--  BIT 18      RAM WE
+--  BIT 19      Update Status Flags
+--  BIT 1A      NOT M NEXT
+--  BIT 1B      NOT Z Next
+--  BIT 1C      NOT NZ next
+--  BIT 1D      WAIT        -- use this if an another controller is running
 
 -- SAP-2 Opcodes
 -- ADD B        80      ; Accum <= Accum + B ; includes flag updates
