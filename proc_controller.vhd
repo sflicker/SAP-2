@@ -106,23 +106,10 @@ entity proc_controller is
     wbus_sel : out STD_LOGIC_VECTOR(3 downto 0);
     alu_op : out STD_LOGIC_VECTOR(3 downto 0);
     wbus_output_connected_components_write_enable: out STD_LOGIC_VECTOR(0 to 11);
---    acc_write_enable : out STD_LOGIC;
---    b_write_enable : out STD_LOGIC;
---    c_write_enable : out STD_LOGIC;
---    tmp_write_enable : out STD_LOGIC;
---    mar_write_enable : out STD_LOGIC;
---    pc_write_enable : out STD_LOGIC;
     pc_increment : out STD_LOGIC;
---    mdr_tm_write_enable : out STD_LOGIC;
---    mdr_direction : out STD_LOGIC;
     mdr_fm_write_enable : out STD_LOGIC;
     ram_write_enable : out STD_LOGIC;
---    ir_opcode_write_enable : out STD_LOGIC;
---    ir_operand_low_write_enable : out STD_LOGIC;
---    ir_operand_high_write_enable : out STD_LOGIC;
     ir_clear : out STD_LOGIC;
---    out_port_3_write_enable : out STD_LOGIC;
---    out_port_4_write_enable : out STD_LOGIC;
     update_status_flags : out STD_LOGIC;
     controller_wait : out STD_LOGIC;
     
@@ -260,30 +247,9 @@ begin
                     wbus_output_connected_components_write_enable <= control_word(10 to 21);
                     mdr_fm_write_enable <= control_word(22);
                     ram_write_enable <= control_word(23);
---                    acc_write_enable <= control_word(8);
---                    b_write_enable <= control_word(9);
---                    c_write_enable <= control_word(10);
---                    tmp_write_enable <= control_word(11);
---                    mar_write_enable <= control_word(12);
---                    pc_write_enable <= control_word(13);
---                    mdr_write_enable <= control_word(15);
---                    mdr_direction <= control_word(16);
---                    ram_write_enable <= control_word(17);                    
---                    ir_opcode_write_enable <= control_word(18);
---                    ir_operand_low_write_enable <= control_word(19);
---                    ir_operand_high_write_enable <= control_word(20);
---                    out_port_3_write_enable <= control_word(22);
---                    out_port_4_write_enable <= control_word(23);
+
                     update_status_flags <= control_word(24);
                     controller_wait <= control_word(28);
-
-                    -- pc_increment <= control_word(3);
-                    -- mar_write_enble <= control_word(4);
-                    -- ir_opcode_write_enable <= control_word(5);
-                    -- acc_write_enable <= control_word(6);
-                    -- alu_op <= control_word(7);
-                    -- b_write_enable <= control_word(8);
-                    -- out_1_write_enable <= control_word(9);
 
 --                    stage_counter <= stage;
         
