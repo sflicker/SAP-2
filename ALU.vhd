@@ -89,7 +89,7 @@ begin
             -- do not update flags in this case
         elsif op = "1001" then -- rotate left
             result := input_2(6 downto 0) & input_2(7);
-        elsif op = "1002" then -- rotate right
+        elsif op = "1010" then -- rotate right
             result := input_2(0) & input_2(7 downto 1);
         else
             result := result;

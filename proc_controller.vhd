@@ -9,7 +9,7 @@ use std.textio.all;
                 -- 0001 1H  PC
                 -- 0010 2H  IR Operand
                 -- 0011 3H  ALU Out
-                -- 0100 4H  MDR Out
+                -- 0100 4H  MDR FM Out
                 -- 0101 5H  ACC Out
                 -- 0110 6H  B Out
                 -- 0111 7H  C Out
@@ -257,7 +257,7 @@ begin
                     alu_op <= control_word(4 to 7);
                     pc_increment <= control_word(8);
                     ir_clear <= control_word(9);
-                    wbus_output_connected_components_write_enable <= control_word(10 to 21)
+                    wbus_output_connected_components_write_enable <= control_word(10 to 21);
                     mdr_fm_write_enable <= control_word(22);
                     ram_write_enable <= control_word(23);
 --                    acc_write_enable <= control_word(8);

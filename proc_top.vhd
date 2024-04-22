@@ -106,6 +106,15 @@ architecture behavior of proc_top is
     signal input_port_2_data_in_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal controller_wait_sig : STD_LOGIC;
     signal io_active_sig : STD_LOGIC;
+    signal mdr_fm_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal wbus_output_connected_components_write_enable_sig : STD_LOGIC_VECTOR(0 to 11);
+    signal wbus_output_we_default_sig : STD_LOGIC_VECTOR(0 to 11);
+    signal wbus_output_we_io_sig : STD_LOGIC_VECTOR(0 to 11);
+    signal write_enable_mdr_fm_sig : STD_LOGIC;
+    signal mdr_tm_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
+    signal acc_write_enable : STD_LOGIC;
+    signal write_enable_mdr_tm_sig : STD_LOGIC;
+
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -178,18 +187,32 @@ begin
         port map(
             sel_default => wbus_sel_sig,
             sel_io => wbus_sel_io_sig, 
+            we_sel_default => wbus_output_we_default_sig,
+            we_sel_io => wbus_output_we_io_sig,
             io_active => io_active_sig,
             pc_addr_in => pc_data_out_sig,
             IR_operand_in => IR_operand_sig,
             acc_data_in => acc_data_sig,
             alu_data_in => alu_data_sig,
-            MDR_data_in => mdr_data_out_sig,
+            MDR_fm_data_in => mdr_fm_data_out_sig,
             B_data_in => b_data_sig,
             C_data_in => c_data_sig, 
             tmp_data_in => tmp_data_sig,
             input_port_1_data_in => input_port_1_data_in_sig,
             input_port_2_data_in => input_port_2_data_in_sig,
-            bus_out => w_bus_data_out_sig
+            bus_out => w_bus_data_out_sig,
+            acc_write_enable => write_enable_acc_sig,
+            b_write_enable => write_enable_B_sig,
+            c_write_enable => write_enable_C_sig,
+            tmp_write_enable => write_enable_tmp_sig,
+            mar_write_enable => write_enable_mar_sig,
+            pc_write_enable => write_enable_PC_sig,
+            mdr_tm_write_enable => write_enable_mdr_tm_sig,
+            ir_opcode_write_enable => write_enable_ir_opcode_sig,
+            ir_operand_low_write_enable => write_enable_low_sig,
+            ir_operand_high_write_enable => write_enable_high_sig,
+            out_port_3_write_enable => out_port_3_write_enable_sig,
+            out_port_4_write_enable => out_port_4_write_enable_sig
         );
 
     PC : entity work.ProgramCounter
@@ -214,21 +237,33 @@ begin
             data_out => mar_addr_sig
             );
             
-    -- MEMORY DATA_REGISTER        
-    MDR : entity work.MemoryDataRegister
+    -- MEMORY DATA_REGISTER - From Ram        
+    MDR_FM : entity work.DataRegister
         Generic Map(8)
         port map(
             clk => clk_sys_sig,
             clr => clr_sig,
-            direction => mdr_direction_sig,
             -- write enable for both modes
-            write_enable => write_enable_mdr_sig,
+            write_enable => write_enable_mdr_fm_sig,
             -- bus to mem (write) mode ports (write to memory)
-            bus_data_in => w_bus_data_out_sig(7 downto 0),
-            mem_data_in => ram_data_out_sig,
+            data_in => ram_data_out_sig,
             -- mem to bus (read) mode ports (read from memory)
-            data_out => mdr_data_out_sig
+            data_out => mdr_fm_data_out_sig
         );              
+
+            -- MEMORY DATA_REGISTER - To Ram        
+    MDR_TM : entity work.DataRegister
+    Generic Map(8)
+    port map(
+        clk => clk_sys_sig,
+        clr => clr_sig,
+        -- write enable for both modes
+        write_enable => write_enable_mdr_tm_sig,
+        -- bus to mem (write) mode ports (write to memory)
+        data_in => w_bus_data_out_sig(7 downto 0),
+        -- mem to bus (read) mode ports (read from memory)
+        data_out => mdr_tm_data_out_sig
+    );              
 
     IR : entity work.DataRegister
         generic map(8)
@@ -261,7 +296,7 @@ begin
     ram_bank_input : entity work.memory_input_multiplexer            
          port map(prog_run_select => S2_prog_run_switch,
                  prog_data_in => S3_data_in,
-                 run_data_in => mdr_data_out_sig,
+                 run_data_in => mdr_tm_data_out_sig,
                  prog_addr_in => S1_addr_in,
                  run_addr_in => mar_addr_sig,
                  prog_clk_in => memory_access_clk,
@@ -292,22 +327,25 @@ begin
             equal_flag => equal_flag_sig,
             wbus_sel => wbus_sel_sig,
             alu_op => alu_op_sig,
-            acc_write_enable => write_enable_acc_sig,
-            b_write_enable => write_enable_B_sig,
-            c_write_enable => write_enable_C_sig,
-            tmp_write_enable => write_enable_tmp_sig,
-            mar_write_enable => write_enable_mar_sig,
-            pc_write_enable => write_enable_PC_sig,
+            wbus_output_connected_components_write_enable => wbus_output_we_default_sig,
+--            acc_write_enable => write_enable_acc_sig,
+--            b_write_enable => write_enable_B_sig,
+--            c_write_enable => write_enable_C_sig,
+--            tmp_write_enable => write_enable_tmp_sig,
+--            mar_write_enable => write_enable_mar_sig,
+--            pc_write_enable => write_enable_PC_sig,
             pc_increment => pc_increment_sig,
-            mdr_write_enable => write_enable_mdr_sig,
-            mdr_direction => mdr_direction_sig,
+            mdr_fm_write_enable => write_enable_mdr_fm_sig,
             ram_write_enable => ram_write_enable_sig,
-            ir_opcode_write_enable => write_enable_ir_opcode_sig,
-            ir_operand_low_write_enable => write_enable_low_sig,
-            ir_operand_high_write_enable => write_enable_high_sig,
+--            mdr_write_enable => write_enable_mdr_sig,
+--            mdr_direction => mdr_direction_sig,
+--            ram_write_enable => ram_write_enable_sig,
+--            ir_opcode_write_enable => write_enable_ir_opcode_sig,
+--            ir_operand_low_write_enable => write_enable_low_sig,
+--            ir_operand_high_write_enable => write_enable_high_sig,
             ir_clear => ir_clear_sig,
-            out_port_3_write_enable => out_port_3_write_enable_sig,
-            out_port_4_write_enable => out_port_4_write_enable_sig,
+--            out_port_3_write_enable => out_port_3_write_enable_sig,
+--            out_port_4_write_enable => out_port_4_write_enable_sig,
 --            out_port_3_write_enable => write_enable_out_1_sig,
 --            out_port_4_write_enable => write_enable_out_2_sig,
             update_status_flags => update_status_flags_sig,
@@ -427,10 +465,11 @@ begin
             opcode => IR_opcode_sig,
             portnum => IR_operand_sig(2 downto 0),
             bus_selector => wbus_sel_io_sig,
+            bus_we_select => wbus_output_we_io_sig,
 --            acc_write_enable => write_enable_acc_sig,
-            acc_write_enable => open,
-            output1_write_enable => out_port_3_write_enable_sig,
-            output2_write_enable => out_port_4_write_enable_sig,
+--            acc_write_enable => open,
+--            output1_write_enable => out_port_3_write_enable_sig,
+--            output2_write_enable => out_port_4_write_enable_sig,
             active => io_active_sig
         );
 
