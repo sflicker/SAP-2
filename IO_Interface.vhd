@@ -20,6 +20,7 @@ entity IO_interface is
         -- output1_write_enable : OUT STD_LOGIC;
         -- output2_write_enable : OUT STD_LOGIC;
         active : OUT STD_LOGIC
+        
     );
 end IO_interface;
 
@@ -32,28 +33,32 @@ begin
     process(clk, rst)
     begin
         if rst = '1' then
-            bus_selector <= (others => '0');
-            bus_we_select <= (others => '0');
+            Report "Resetting";
+--            bus_selector <= (others => '0');
+--            bus_we_select <= (others => '0');
 --            output1_write_enable <= '0';
 --            output2_write_enable <= '0';
   --          select_input_out <= (others => '0');
   --          output1 <= (others => '0');
   --          output2 <= (others => '0');
-            active <= '0';
+          --  active <= '0';
             state <= IDLE;
 
         elsif rising_edge(clk) then
+            Report "Setting State to " & to_string(next_state);
             state <= next_state;
         end if;            
     end process;
             
     process(state, opcode, portnum)
     begin
+        Report "Processing - state: " & to_string(state) & 
+            ", opcode: " & to_string(opcode) & ", portnum: " & to_string(portnum);
         next_state <= state;  -- default next state to current
         case state is
             when IDLE =>
                 if opcode = IN_byte_OPCODE or opcode = OUT_byte_OPCODE then
-
+                    Report "IO Opcode detected activating";
                     next_state <= SETUP;
                     active <= '1';
                 end if;

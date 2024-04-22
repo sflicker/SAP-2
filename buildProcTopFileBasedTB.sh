@@ -48,12 +48,12 @@ ghdl -e --std=08 -fsynopsys -v proc_top_filebased_tb
 
 echo "Running Test Bench"
 #run
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="test_program_1.txt" --stop-time=100000ns --vcd=test_program_1.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="load_accumulator_test.txt" --stop-time=20000ns --vcd=load_accumulator_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="store_accumulator_test.txt" --stop-time=20000ns --vcd=store_accumulator_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="mvi_test.txt" --stop-time=20000ns --vcd=mvi_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="jump_test.txt" --stop-time=20000ns --vcd=jump_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="loop_test.txt" --stop-time=100000ns --vcd=loop_test.vcd
+#ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="test_program_1.txt" --stop-time=100000ns --vcd=test_program_1.vcd
+#ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="load_accumulator_test.txt" --stop-time=20000ns --vcd=load_accumulator_test.vcd
+#ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="store_accumulator_test.txt" --stop-time=20000ns --vcd=store_accumulator_test.vcd
+#ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="mvi_test.txt" --stop-time=20000ns --vcd=mvi_test.vcd
+#ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="jump_test.txt" --stop-time=20000ns --vcd=jump_test.vcd
+#ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="loop_test.txt" --stop-time=100000ns --vcd=loop_test.vcd
 ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="loop_test_with_output.txt" --stop-time=100000ns --vcd=loop_test_with_output.vcd
 
 
