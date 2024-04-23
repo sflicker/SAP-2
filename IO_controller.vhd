@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
 
-entity IO_interface is
+entity IO_controller is
     Port(
         clk : IN STD_LOGIC;
         rst : IN STD_LOGIC;
@@ -13,12 +13,12 @@ entity IO_interface is
         active : OUT STD_LOGIC
         
     );
-end IO_interface;
+end IO_controller;
 
-architecture behavioral of IO_interface is
+architecture behavioral of IO_controller is
     constant IN_byte_OPCODE : STD_LOGIC_VECTOR(7 downto 0) := x"DB";
     constant OUT_byte_OPCODE : STD_LOGIC_VECTOR(7 downto 0) := x"D3";
-    type State_Type is (IDLE, SETUP, EXECUTE);
+    type State_Type is (IDLE, EXECUTE, COOL);
     signal state, next_state : State_Type;
 begin
     process(clk, rst)
@@ -51,10 +51,10 @@ begin
                 if (opcode = IN_byte_OPCODE and (portnum = "001" or portnum = "010"))
                                 or (opcode = OUT_byte_OPCODE and (portnum = "011" or portnum = "100")) then
                     Report "IO Opcode detected activating";
-                    next_state <= SETUP;
+                    next_state <= EXECUTE;
                 end if;
             
-            when SETUP =>
+            when EXECUTE =>
                 if opcode = IN_BYTE_OPCODE then
                     if portnum = "001" then
                         active <= '1';
@@ -76,10 +76,10 @@ begin
                         bus_we_select <= "000000000001";
                     end if;
                 end if;
-                next_state <= EXECUTE;
+                next_state <= COOL;
 
-            when EXECUTE =>
-                -- writes should automatically happen
+            when COOL =>
+                -- cool down for a state while main controller resumes control
                 next_state <= IDLE;
                 active <= '0';
             when others =>

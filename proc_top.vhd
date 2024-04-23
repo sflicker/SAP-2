@@ -405,9 +405,9 @@ begin
         data_out => output_2_sig
     );
 
-    IO : entity work.IO_interface
+    IO : entity work.IO_controller
         Port map(
-            clk => clk_sys_sig,
+            clk => clkbar_sys_sig,
             rst => clr_sig,
             opcode => IR_opcode_sig,
             portnum => IR_operand_sig(2 downto 0),
