@@ -11,7 +11,9 @@ entity ProgramCounter is
         clk : in STD_LOGIC;
         clr : in STD_LOGIC;
         increment : in STD_LOGIC;
-        write_enable : in STD_LOGIC;
+        write_enable_full : in STD_LOGIC;
+        write_enable_low : in STD_LOGIC;
+        write_enable_high :in STD_LOGIC;
         data_in : in STD_LOGIC_VECTOR(WIDTH-1 downto 0);
         data_out : out STD_LOGIC_VECTOR(WIDTH-1 downto 0)
     );
@@ -30,8 +32,12 @@ begin
         elsif rising_edge(clk) then
             if increment = '1' then
                 internal_value := STD_LOGIC_VECTOR(unsigned(internal_value) + 1);
-            elsif write_enable = '1' then
+            elsif write_enable_full = '1' then
                 internal_value := data_in;
+            elsif write_enable_low = '1' then
+                internal_value(7 downto 0) := data_in(7 downto 0);
+            elsif write_enable_high = '1' then
+                internal_value(15 downto 8) := data_in(7 downto 0);
             end if;
         end if;
         data_out <= internal_value;

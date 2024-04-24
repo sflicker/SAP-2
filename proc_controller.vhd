@@ -15,7 +15,10 @@ use std.textio.all;
                 -- 0111 7H  C Out
                 -- 1000 8H  Tmp Out
                 -- 1001 9H  Input 1
-                -- 1002 AH  Input 2
+                -- 1010 AH  Input 2
+                -- 1011 BH  PC Low
+                -- 1100 CH  PC High
+                -- 1101 DH  SP
                 -- WE Selector
 --  BITS 4-7    ALU Operation
                 -- 0000 OH   ALU NOP
@@ -43,13 +46,17 @@ use std.textio.all;
 --  BIT 14      IR Operand High Write Enable
 --  BIT 15      OUT Port 1 Write Enable
 --  BIT 16      OUT Port 2 Write Enable
---  BIT 17      MDR-FM WE                       -- WE for components not connected to 
---  BIT 18      RAM WE
---  BIT 19      Update Status Flags
---  BIT 1A      NOT M NEXT
---  BIT 1B      NOT Z Next
---  BIT 1C      NOT NZ next
---  BIT 1D      WAIT        -- use this if an another controller is running
+--  BIT 17      PC LOW WE
+--  BIT 18      PC HIGH WE
+--  BIT 19      MDR-FM WE                       -- WE for components not connected to 
+--  BIT 1A      RAM WE
+--  BIT 1B      Update Status Flags
+--  BIT 1C      NOT M NEXT
+--  BIT 1D      NOT Z Next
+--  BIT 1E      NOT NZ next
+--  BIT 1F      WAIT        -- use this if an another controller is running
+--  BIT 20      SP INC
+--  BIT 21      SP DEC
 
 -- SAP-2 Opcodes
 -- ADD B        80      ; Accum <= Accum + B ; includes flag updates
@@ -105,13 +112,15 @@ entity proc_controller is
     -- outputs
     wbus_sel : out STD_LOGIC_VECTOR(3 downto 0);
     alu_op : out STD_LOGIC_VECTOR(3 downto 0);
-    wbus_output_connected_components_write_enable: out STD_LOGIC_VECTOR(0 to 11);
+    wbus_output_connected_components_write_enable: out STD_LOGIC_VECTOR(0 to 13);
     pc_increment : out STD_LOGIC;
     mdr_fm_write_enable : out STD_LOGIC;
     ram_write_enable : out STD_LOGIC;
     ir_clear : out STD_LOGIC;
     update_status_flags : out STD_LOGIC;
     controller_wait : out STD_LOGIC;
+    stack_pointer_inc : out STD_LOGIC;
+    stack_pointer_dec : out STD_LOGIC;
     
     HLTBar : out STD_LOGIC;
     stage_out : out integer
@@ -122,7 +131,7 @@ architecture Behavioral of proc_controller is
     signal stage_sig : integer := 1;
 
     signal control_word_index_signal : std_logic_vector(9 downto 0);
-    signal control_word_signal : std_logic_vector(0 to 28);
+    signal control_word_signal : std_logic_vector(0 to 32);
 
 --    phase_out <= std_logic_vector(shift_left(unsigned'("000001"), stage_counter_sig - 1));
 
@@ -130,7 +139,7 @@ architecture Behavioral of proc_controller is
 
 
     type ADDRESS_ROM_TYPE is array(0 to 255) of std_logic_vector(9 downto 0);
-    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 28);
+    type CONTROL_ROM_TYPE is array(0 to 1023) of STD_LOGIC_VECTOR(0 to 32);
 
     impure function init_address_rom return ADDRESS_ROM_TYPE is
         file text_file : text open read_mode is "instruction_index.txt";
@@ -160,38 +169,42 @@ architecture Behavioral of proc_controller is
 
     constant ADDRESS_ROM_CONTENTS : ADDRESS_ROM_TYPE := init_address_rom;
 
-    constant NOP : STD_LOGIC_VECTOR(0 to 28) := "00000000000000000000000000000";
+    constant NOP : STD_LOGIC_VECTOR(0 to 32) := "000000000000000000000000000000000";
 
     constant CONTROL_ROM : CONTROL_ROM_TYPE := init_control_rom;
 
     procedure output_control_word(
         variable stage_var : integer := 1;
-        variable control_word : std_logic_vector(0 to 28)) is
+        variable control_word : std_logic_vector(0 to 32)) is
     begin
         Report "Stage: " & to_string(stage_var) 
             & ", wbus_sel: " & to_string(control_word(0 to 3))
             & ", alu_op: " & to_string(control_word(4 to 7))
-            & ", acc_write_enable: " & to_string(control_word(8))
-            & ", b_write_enable: " & to_string(control_word(9))
-            & ", c_write_enable: " & to_string(control_word(10))
-            & ", tmp_write_enable: " & to_string(control_word(11))
-            & ", mar_write_enable: " & to_string(control_word(12))
-            & ", pc_write_enable: " & to_string(control_word(13))
-            & ", pc_increment: " & to_string(control_word(14))
-            & ", mdr_write_enable: " & to_string(control_word(15))
-            & ", mdr_direction: " & to_string(control_word(16))
-            & ", ram_write_enable: " & to_string(control_word(17))
-            & ", ir_opcode_write_enable: " & to_string(control_word(18))
-            & ", ir_operand_low_write_enable: " & to_string(control_word(19))
-            & ", ir_operand_high_write_enable: " & to_string(control_word(20))
-            & ", ir_clear: " & to_string(control_word(21))
-            & ", out_1_write_enable: " & to_string(control_word(22))
-            & ", out_2_write_enable: " & to_string(control_word(23))
-            & ", update_status_flags: " & to_string(control_word(24))
-            & ", not_m_next: " & to_string(control_word(25))
-            & ", not_z_next: " & to_string(control_word(26))
-            & ", not_nz_next: " & to_string(control_word(27))
-            & ", controller_wait: " & to_string(control_word(28));
+            & ", pc_increment: " & to_string(control_word(8))
+            & ", ir_clear: " & to_string(control_word(9))
+            & ", acc_write_enable: " & to_string(control_word(10))
+            & ", b_write_enable: " & to_string(control_word(11))
+            & ", c_write_enable: " & to_string(control_word(12))
+            & ", tmp_write_enable: " & to_string(control_word(13))
+            & ", mar_write_enable: " & to_string(control_word(14))
+            & ", pc_write_enable: " & to_string(control_word(15))
+            & ", mdr_tm_write_enable: " & to_string(control_word(16))
+            & ", ir_opcode_write_enable: " & to_string(control_word(17))
+            & ", ir_operand_low_write_enable: " & to_string(control_word(18))
+            & ", ir_operand_high_write_enable: " & to_string(control_word(19))
+            & ", out_1_write_enable: " & to_string(control_word(20))
+            & ", out_2_write_enable: " & to_string(control_word(21))
+            & ", pc_low_write_enable: " & to_string(control_word(22))
+            & ", pc_high_write_enable: " & to_string(control_word(23))
+            & ", mdr_fm_write_enable: " & to_string(control_word(24))
+            & ", ram_write_enable: " & to_string(control_word(25))
+            & ", update_status_flags: " & to_string(control_word(26))
+            & ", not_m_next: " & to_string(control_word(27))
+            & ", not_z_next: " & to_string(control_word(28))
+            & ", not_nz_next: " & to_string(control_word(29))
+            & ", controller_wait: " & to_string(control_word(30));
+            & ", sp_inc: " & to_string(control_word(31));
+            & ", sp_dec: " & to_string(control_word(32));
 
     end procedure;
 
@@ -204,7 +217,7 @@ begin
         process(clk, clrbar, opcode)
             variable stage_var : integer := 1;
             variable control_word_index : std_logic_vector(9 downto 0);
-            variable control_word : std_logic_vector(0 to 28);
+            variable control_word : std_logic_vector(0 to 32);
         begin
 
             if CLRBAR = '0' then
@@ -227,9 +240,9 @@ begin
                     & ", control_word: " & to_string(control_word) & ", opcode: " & to_string(opcode);
 
                 if control_word = NOP or 
-                    (control_word(25) = '1' and minus_flag = '0') or
-                    (control_word(26) = '1' and equal_flag = '0') or
-                    (control_word(27) = '1' and equal_flag = '1')  then
+                    (control_word(27) = '1' and minus_flag = '0') or
+                    (control_word(28) = '1' and equal_flag = '0') or
+                    (control_word(29) = '1' and equal_flag = '1')  then
                         Report "NOP detected moving to next instruction";
                         stage_var := 1;
                         stage_sig <= stage_var;
@@ -244,13 +257,15 @@ begin
                     alu_op <= control_word(4 to 7);
                     pc_increment <= control_word(8);
                     ir_clear <= control_word(9);
-                    wbus_output_connected_components_write_enable <= control_word(10 to 21);
-                    mdr_fm_write_enable <= control_word(22);
-                    ram_write_enable <= control_word(23);
+                    wbus_output_connected_components_write_enable <= control_word(10 to 23);
+                    mdr_fm_write_enable <= control_word(24);
+                    ram_write_enable <= control_word(25);
 
-                    update_status_flags <= control_word(24);
-                    controller_wait <= control_word(28);
+                    update_status_flags <= control_word(26);
 
+                    controller_wait <= control_word(30);
+                    stack_pointer_inc <= control_word(31);
+                    stack_pointer_dec <= control_word(32);
 --                    stage_counter <= stage;
         
                     if stage_var >= 20 then

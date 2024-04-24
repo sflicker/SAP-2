@@ -108,6 +108,9 @@ architecture behavior of proc_top is
     signal mdr_tm_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal acc_write_enable : STD_LOGIC;
     signal write_enable_mdr_tm_sig : STD_LOGIC;
+    signal sp_increment_sig : STD_LOGIC;
+    signal sp_decrement_sig : STD_LOGIC;
+    signal sp_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -279,6 +282,16 @@ begin
                 operand_high_out => operand_high_out_sig
             );
 
+    SP : entity work.StackPointer
+            port map(
+                clk => clk_sys_sig,
+                clr => ir_clear_sig,
+                increment => sp_increment_sig,
+                decrement => sp_decrement_sig,
+                data_out => sp_data_out_sig
+            );
+
+
     -- input_port_multipler : entity work.input_port_multiplexer
     --     port map(
     --         input_port_select_in => ,
@@ -327,6 +340,8 @@ begin
             ir_clear => ir_clear_sig,
             update_status_flags => update_status_flags_sig,
             controller_wait => controller_wait_sig,
+            stack_pointer_inc => sp_increment_sig,
+            stack_pointer_dec => sp_decrement_sig,
             hltbar => hltbar_sig,
             stage_out => stage_counter_sig
         );

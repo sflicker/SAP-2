@@ -4,8 +4,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity w_bus is
   Port (sel_default : in STD_LOGIC_VECTOR(3 downto 0); 
         sel_io : in STD_LOGIC_VECTOR(3 downto 0);
-        we_sel_default : in STD_LOGIC_VECTOR(0 to 11);
-        we_sel_io : in STD_LOGIC_VECTOR(0 to 11);
+        we_sel_default : in STD_LOGIC_VECTOR(0 to 13);
+        we_sel_io : in STD_LOGIC_VECTOR(0 to 13);
         io_active : in STD_LOGIC;
         pc_addr_in : in STD_LOGIC_VECTOR(15 downto 0);
         IR_operand_in : in STD_LOGIC_VECTOR(15 downto 0);
@@ -55,6 +55,9 @@ begin
             when "1000" => bus_out <= ("00000000" & tmp_data_in);
             when "1001" => bus_out <= ("00000000" & input_port_1_data_in);
             when "1010" => bus_out <= ("00000000" & input_port_2_data_in);
+            when "1011" => bus_out <= ("00000000" & pc_addr_in(7 downto 0));
+            when "1100" => bus_out <= ("00000000" & pc_addr_in(15 downto 8));
+            when "1101" => bus_out <= stack_pointer_in;
             when others => bus_out <= (others => '0');
         end case;
     end process;
@@ -73,5 +76,7 @@ begin
         ir_operand_high_write_enable <= we_sel_active_sig(9);
         out_port_3_write_enable <= we_sel_active_sig(10);
         out_port_4_write_enable <= we_sel_active_sig(11);
+        pc_write_enable_low <= we_sel_active_low_sig(12);
+        pc_write_enable_high <= we_sel_active_high_sig(13);
     end process;
 end behavioral;
