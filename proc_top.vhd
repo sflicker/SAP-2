@@ -223,7 +223,7 @@ begin
             clr => clr_sig,
             write_enable_full => write_enable_PC_sig,
             write_enable_low => pc_write_enable_low_sig,
-            write_enable_high => pc_write_enable_low_sig,
+            write_enable_high => pc_write_enable_high_sig,
             increment => pc_increment_sig,
             data_in => w_bus_data_out_sig,
             data_out => pc_data_out_sig
@@ -292,7 +292,7 @@ begin
     SP : entity work.StackPointer
             port map(
                 clk => clk_sys_sig,
-                clr => ir_clear_sig,
+                clr => clr_sig,
                 increment => sp_increment_sig,
                 decrement => sp_decrement_sig,
                 data_out => sp_data_out_sig

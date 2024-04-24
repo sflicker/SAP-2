@@ -77,7 +77,7 @@ begin
     manual_auto_switch_sig <= '0';
     memory_access_clk_sig <= '0';
 
-    REPORT "Reading Program File into Memory starting at address 0";
+    REPORT "Reading Program File " & file_name & " into Memory starting at address 0";
     -- load program from file starting at address 0
     WHILE NOT ENDFILE(f) loop
         READLINE(f, l);
@@ -102,6 +102,8 @@ begin
     end loop;
 
     wait for 100 ns;
+
+    Report "Finished Loading Test Program into memory";
 
     REPORT "Resetting system";
     -- reset/clear system

@@ -268,7 +268,7 @@ begin
                     stack_pointer_dec <= control_word(32);
 --                    stage_counter <= stage;
         
-                    if stage_var >= 20 then
+                    if stage_var >= 30 then
                         stage_var := 1;
                         stage_sig <= stage_var;
                     else

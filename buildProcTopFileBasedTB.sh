@@ -58,7 +58,7 @@ ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="loop_test.txt"
 ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="loop_test_with_output.txt" --stop-time=150000ns --vcd=loop_test_with_output.vcd
 ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="out_test.txt" --stop-time=10000ns --vcd=out_test.vcd
 ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="out_test2.txt" --stop-time=10000ns --vcd=out_test2.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="call_test.txt" --stop-time=10000ns --vcd=call_test.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="call_test.txt" --stop-time=250000ns --vcd=call_test.vcd
 
 
 
