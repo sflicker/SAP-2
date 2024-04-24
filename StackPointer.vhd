@@ -25,13 +25,13 @@ begin
         if clr = '1' then
             internal_value := (others => '1');
         elsif rising_edge(clk) then
-            elsif increment = '1' then
-                interval_value := STD_LOGIC_VECTOR(unsigned(internal_value) + 1);
+            if increment = '1' then
+                internal_value := STD_LOGIC_VECTOR(unsigned(internal_value) + 1);
             elsif decrement = '1' then
                 internal_value := STD_LOGIC_VECTOR(unsigned(internal_value) - 1);
             end if;
         end if;
-        data_out <= interval_value;
+        data_out <= internal_value;
     end process;
 end Behavioral;
 

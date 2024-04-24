@@ -8,6 +8,7 @@ entity w_bus is
         we_sel_io : in STD_LOGIC_VECTOR(0 to 13);
         io_active : in STD_LOGIC;
         pc_addr_in : in STD_LOGIC_VECTOR(15 downto 0);
+        stack_pointer_in : in STD_LOGIC_VECTOR(15 downto 0);
         IR_operand_in : in STD_LOGIC_VECTOR(15 downto 0);
         acc_data_in : in STD_LOGIC_VECTOR(7 downto 0);
         alu_data_in  : in STD_LOGIC_VECTOR(7 downto 0);
@@ -29,13 +30,15 @@ entity w_bus is
         ir_operand_low_write_enable : out STD_LOGIC;
         ir_operand_high_write_enable : out STD_LOGIC;
         out_port_3_write_enable : out STD_LOGIC;
-        out_port_4_write_enable : out STD_LOGIC
+        out_port_4_write_enable : out STD_LOGIC;
+        pc_write_enable_low : out STD_LOGIC;
+        pc_write_enable_high : out STD_LOGIC
   );
 end w_bus;
 
 architecture Behavioral of w_bus is
     signal sel_active_sig : STD_LOGIC_VECTOR(3 downto 0);
-    signal we_sel_active_sig : STD_LOGIC_VECTOR(0 to 11);
+    signal we_sel_active_sig : STD_LOGIC_VECTOR(0 to 13);
 begin
 
     sel_active_sig <= sel_io when io_active = '1' else sel_default;
@@ -76,7 +79,7 @@ begin
         ir_operand_high_write_enable <= we_sel_active_sig(9);
         out_port_3_write_enable <= we_sel_active_sig(10);
         out_port_4_write_enable <= we_sel_active_sig(11);
-        pc_write_enable_low <= we_sel_active_low_sig(12);
-        pc_write_enable_high <= we_sel_active_high_sig(13);
+        pc_write_enable_low <= we_sel_active_sig(12);
+        pc_write_enable_high <= we_sel_active_sig(13);
     end process;
 end behavioral;

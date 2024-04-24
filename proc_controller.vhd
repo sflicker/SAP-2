@@ -202,8 +202,8 @@ architecture Behavioral of proc_controller is
             & ", not_m_next: " & to_string(control_word(27))
             & ", not_z_next: " & to_string(control_word(28))
             & ", not_nz_next: " & to_string(control_word(29))
-            & ", controller_wait: " & to_string(control_word(30));
-            & ", sp_inc: " & to_string(control_word(31));
+            & ", controller_wait: " & to_string(control_word(30))
+            & ", sp_inc: " & to_string(control_word(31))
             & ", sp_dec: " & to_string(control_word(32));
 
     end procedure;

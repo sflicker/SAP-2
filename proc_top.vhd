@@ -102,8 +102,8 @@ architecture behavior of proc_top is
     signal io_active_sig : STD_LOGIC;
     signal mdr_fm_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal wbus_output_connected_components_write_enable_sig : STD_LOGIC_VECTOR(0 to 11);
-    signal wbus_output_we_default_sig : STD_LOGIC_VECTOR(0 to 11);
-    signal wbus_output_we_io_sig : STD_LOGIC_VECTOR(0 to 11);
+    signal wbus_output_we_default_sig : STD_LOGIC_VECTOR(0 to 13);
+    signal wbus_output_we_io_sig : STD_LOGIC_VECTOR(0 to 13);
     signal write_enable_mdr_fm_sig : STD_LOGIC;
     signal mdr_tm_data_out_sig : STD_LOGIC_VECTOR(7 downto 0);
     signal acc_write_enable : STD_LOGIC;
@@ -111,6 +111,8 @@ architecture behavior of proc_top is
     signal sp_increment_sig : STD_LOGIC;
     signal sp_decrement_sig : STD_LOGIC;
     signal sp_data_out_sig : STD_LOGIC_VECTOR(15 downto 0);
+    signal pc_write_enable_low_sig : STD_LOGIC;
+    signal pc_write_enable_high_sig : STD_LOGIC;
 
     attribute MARK_DEBUG of clk_ext_converted_sig : signal is "true";
     attribute MARK_DEBUG of clk_sys_sig : signal is "true";
@@ -187,6 +189,7 @@ begin
             we_sel_io => wbus_output_we_io_sig,
             io_active => io_active_sig,
             pc_addr_in => pc_data_out_sig,
+            stack_pointer_in => sp_data_out_sig,
             IR_operand_in => IR_operand_sig,
             acc_data_in => acc_data_sig,
             alu_data_in => alu_data_sig,
@@ -208,7 +211,9 @@ begin
             ir_operand_low_write_enable => write_enable_low_sig,
             ir_operand_high_write_enable => write_enable_high_sig,
             out_port_3_write_enable => out_port_3_write_enable_sig,
-            out_port_4_write_enable => out_port_4_write_enable_sig
+            out_port_4_write_enable => out_port_4_write_enable_sig,
+            pc_write_enable_low => pc_write_enable_low_sig,
+            pc_write_enable_high => pc_write_enable_high_sig
         );
 
     PC : entity work.ProgramCounter
@@ -216,7 +221,9 @@ begin
         port map(
             clk => clkbar_sys_sig,
             clr => clr_sig,
-            write_enable => write_enable_PC_sig,
+            write_enable_full => write_enable_PC_sig,
+            write_enable_low => pc_write_enable_low_sig,
+            write_enable_high => pc_write_enable_low_sig,
             increment => pc_increment_sig,
             data_in => w_bus_data_out_sig,
             data_out => pc_data_out_sig
