@@ -45,8 +45,8 @@ begin
     r_display_data(7 downto 0) <= o_rx_byte;
 
     DISP_CLOCK_DIVIDER : entity work.clock_divider
---        generic map(g_DIV_FACTOR => 100000)
-        generic map(g_DIV_FACTOR => 1000)
+        generic map(g_DIV_FACTOR => 100000)
+--        generic map(g_DIV_FACTOR => 10)
                 port map(
             i_clk => i_clk,
             i_reset => i_reset,
@@ -58,11 +58,11 @@ begin
         generate  
             display_controller : entity work.display_controller
             port map(
-               clk => w_clk_disp_refresh_1KHZ_sig,
-               rst => i_reset,
-               data_in => r_display_data,
-               anodes_out => o_anodes,
-               cathodes_out => o_cathodes
+               i_clk => w_clk_disp_refresh_1KHZ_sig,
+               i_rst => i_reset,
+               i_data => r_display_data,
+               o_anodes => o_anodes,
+               o_cathodes => o_cathodes
            );
        end generate;          
 
