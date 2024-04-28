@@ -12,6 +12,7 @@ architecture behavioral of UART_RX_TB is
     signal r_clock : std_logic := '0';
     signal w_rx_byte : std_logic_vector(7 downto 0);
     signal r_rx_serial : std_logic := '1';
+    signal r_rx_dv : std_logic;
 
     procedure UART_WRITE_BYTE (
         i_data_in : in std_logic_vector(7 downto 0);
@@ -39,7 +40,7 @@ architecture behavioral of UART_RX_TB is
         port map (
             i_clk => r_clock,
             i_rx_serial => r_rx_serial,
-            o_rx_dv => open,
+            o_rx_dv => r_rx_dv,
             o_rx_byte => w_rx_byte
         );
 
@@ -58,6 +59,19 @@ architecture behavioral of UART_RX_TB is
         else
             Report "Test Failed" severity note;
         end if;
+
+        Report "Starting Second Test";
+        wait until rising_edge(r_clock);
+        UART_WRITE_BYTE(X"A3", r_rx_serial);
+        wait until rising_edge(r_clock);
+
+        Report "Test Result = " & to_string(w_rx_byte);
+        if w_rx_byte = X"A3" then
+            Report "Test Passed" severity note;
+        else
+            Report "Test Failed" severity note;
+        end if;
+
 
         assert false report "Tests Completed" severity failure;
     end process;

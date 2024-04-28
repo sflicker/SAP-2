@@ -9,8 +9,10 @@ entity UART_top is
     );
     port (
         i_clk : in STD_LOGIC;
+        i_reset : in STD_LOGIC;
         i_rx_serial : in STD_LOGIC;
-        o_data : out STD_LOGIC_VECTOR(7 downto 0);
+        o_rx_dv : out STD_LOGIC;                        -- output data valid bit. high after succcessfully byte for one clock cycle
+        o_rx_byte : out STD_LOGIC_VECTOR(7 downto 0);    -- output received byte
         o_anodes : out STD_LOGIC_VECTOR(3 downto 0);      -- maps to seven segment display
         o_cathodes : out STD_LOGIC_VECTOR(6 downto 0)     -- maps to seven segment display
 
@@ -18,8 +20,6 @@ entity UART_top is
 end UART_TOP;
 
 architecture behavioral of UART_top is
-    signal w_rx_dv : std_logic;
-    signal w_rx_byte : std_logic_vector(7 downto 0);
     signal r_display_data : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
     signal w_clk_disp_refresh_1KHZ_sig : STD_LOGIC;
     signal r_clr_sig : STD_LOGIC := '0';
@@ -29,8 +29,8 @@ begin
     port map (
         i_clk => i_clk,
         i_rx_serial => i_rx_serial,
-        o_rx_dv => w_rx_dv,
-        o_rx_byte => w_rx_byte
+        o_rx_dv => o_rx_dv,
+        o_rx_byte => o_rx_byte
     );
 
 --    process(w_rx_dv)
@@ -42,14 +42,14 @@ begin
 --        end if;
 --    end process;
 
-    r_display_data(7 downto 0) <= w_rx_byte;
-    o_data <= w_rx_byte;
+    r_display_data(7 downto 0) <= o_rx_byte;
 
     DISP_CLOCK_DIVIDER : entity work.clock_divider
-        generic map(g_DIV_FACTOR => 100000)
-        port map(
+--        generic map(g_DIV_FACTOR => 100000)
+        generic map(g_DIV_FACTOR => 1000)
+                port map(
             i_clk => i_clk,
-            i_reset => '0',
+            i_reset => i_reset,
             o_clk => w_clk_disp_refresh_1KHZ_sig
         );
 
@@ -59,7 +59,7 @@ begin
             display_controller : entity work.display_controller
             port map(
                clk => w_clk_disp_refresh_1KHZ_sig,
-               rst => r_clr_sig,
+               rst => i_reset,
                data_in => r_display_data,
                anodes_out => o_anodes,
                cathodes_out => o_cathodes

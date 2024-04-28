@@ -32,7 +32,7 @@ architecture rtl of uart_rx is
     signal r_state : t_state := s_idol;
     signal r_clk_count : integer range 0 to g_CLKS_PER_BIT - 1 := 0;
     signal r_bit_index : integer range 0 to 7 := 0;
-    signal r_rx_byte : STD_LOGIC_VECTOR(7 downto 0);
+    signal r_rx_byte : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
     signal r_rx_dv : STD_LOGIC := '0';
 begin
     p_UART_RX : process(i_clk)
