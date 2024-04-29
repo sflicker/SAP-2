@@ -11,6 +11,7 @@ entity UART_top is
         i_clk : in STD_LOGIC;
         i_reset : in STD_LOGIC;
         i_rx_serial : in STD_LOGIC;
+        o_tx_serial : out STD_LOGIC;
         o_rx_dv : out STD_LOGIC;                        -- output data valid bit. high after succcessfully byte for one clock cycle
         o_rx_byte : out STD_LOGIC_VECTOR(7 downto 0);    -- output received byte
         o_anodes : out STD_LOGIC_VECTOR(3 downto 0);      -- maps to seven segment display
@@ -23,13 +24,33 @@ architecture behavioral of UART_top is
     signal r_display_data : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
     signal w_clk_disp_refresh_1KHZ_sig : STD_LOGIC;
     signal r_clr_sig : STD_LOGIC := '0';
+    signal r_tx_byte : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
+    signal w_rx_dv : STD_LOGIC;
+    signal w_tx_active : STD_LOGIC;
+    signal w_tx_serial : STD_LOGIC;
+    signal w_tx_done : STD_LOGIC;
 begin
+
+    r_tx_byte <= o_rx_byte when o_rx_dv = '1' else r_tx_byte;
+          
+    o_rx_dv <= w_rx_dv;
+    o_tx_serial <= w_tx_serial;
+
+    UART_TX_INST : entity work.UART_TX
+    port map(
+        i_clk => i_clk,
+        i_tx_dv => w_rx_dv,
+        i_tx_byte => r_tx_byte,
+        o_tx_active => w_tx_active,
+        o_tx_serial => w_tx_serial,
+        o_tx_done => w_tx_done
+    );
 
     UART_RX_INST: entity work.UART_RX
     port map (
         i_clk => i_clk,
         i_rx_serial => i_rx_serial,
-        o_rx_dv => o_rx_dv,
+        o_rx_dv => w_rx_dv,
         o_rx_byte => o_rx_byte
     );
 

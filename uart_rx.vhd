@@ -73,7 +73,7 @@ begin
                     else 
                         r_clk_count <= 0;
                         r_rx_byte(r_bit_index) <= i_rx_serial;  -- save bit at bit index position
-                        Report "Received Bit";
+                        Report "Received Bit - " & to_string(i_rx_serial);
                         if r_bit_index < 7 then                 -- if not at end of byte increment the bit_index and continue
                             r_bit_index <= r_bit_index + 1;
                             r_state <= s_rx_byte_bits;
