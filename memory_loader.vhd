@@ -18,8 +18,7 @@ entity memory_loader is
 end memory_loader;
 
 architecture rtl of memory_loader is
-    type t_byte is std_logic_vector(7 downto 0);
-    type t_byte_array is array (natural range <>) of t_byte;
+    type t_byte_array is array (natural range <>) of std_logic_vector(7 downto 0);
     type t_state is (s_idle, s_recv_start, s_send_start_resp, s_recv_total,
         s_recv_start_addr, s_recv_data, s_write_data, s_send_checksum, s_cleanup);
     
@@ -31,16 +30,16 @@ architecture rtl of memory_loader is
     signal r_counter : STD_LOGIC_VECTOR(15 downto 0);
     signal r_addr : STD_LOGIC_VECTOR(15 downto 0);
     signal r_index : integer;
-    signal r_checksum : unsigned := 0;
+    signal r_checksum : unsigned := (others => '0');
     begin
         p_memory_loader : process(i_clk, i_reset)
         begin
             if i_reset = '1' then
                 r_state <= s_idle;
                 r_index <= 0;
-                r_counter <= (other => '0');
-                r_addr <=  (other => '0');
-                r_data <= (other => '0');
+                r_counter <= (others => '0');
+                r_addr <=  (others => '0');
+                r_data <= (others => '0');
             elsif rising_edge(i_clk) then
                 case r_state is 
                     when s_idle => 
@@ -70,11 +69,11 @@ architecture rtl of memory_loader is
                             end if;
                         end if;
                     
-                    when s_send_start_resp
-                        if i_tx_active = '0'    -- only transmit is upstream is not active
+                    when s_send_start_resp =>
+                        if i_tx_active = '0' then   -- only transmit is upstream is not active
                             o_response <= c_ready_str(r_index);
                             if r_index = c_ready_str'length-1 then
-                                r_index = 0;
+                                r_index <= 0;
                                 r_state <= s_revc_total;
                             else
                                 r_index <= r_index + 1;
@@ -153,8 +152,12 @@ architecture rtl of memory_loader is
                     when s_cleanup =>
                         r_counter <= 0;
                         r_index <= 0;
-                        r_counter <= (other => '0');
-                        r_addr <=  (other => '0');
-                        r_data <= (other => '0');
+                        r_counter <= (others => '0');
+                        r_addr <=  (others => '0');
+                        r_data <= (others => '0');
                         r_state <= s_idle;
-                    
+                end case;
+            end if;
+        end process;
+    end rtl;
+    

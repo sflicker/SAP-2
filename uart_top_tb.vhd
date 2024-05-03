@@ -38,7 +38,6 @@ begin
     r_clock <= not r_clock after c_clk_period/2;
 
         UART_TOP_INST: entity work.UART_TOP
-
         port map (
             i_clk => r_clock,
             i_reset => r_reset,
