@@ -6,6 +6,10 @@ entity memory_loader_tb is
 end memory_loader_tb;
 
 architecture behavioral of memory_loader_tb is
+    constant c_clk_period :time := 10 ns;
+    constant c_clk_per_bit : integer := 10416;
+    constant c_bit_period : time := 104167 ns;
+
     signal w_clk : STD_LOGIC;
     signal r_reset : STD_LOGIC := '0';
     signal r_tx_data : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
@@ -77,25 +81,30 @@ begin
         o_wrt_mem_we => w_wrt_mem_we
     );
 
-    uart_rx : entity work.uart_rx
-    port map (
-        i_clk => w_clk,
-        i_rx_serial =>
-        o_rx_dv =>
-        o_rx_byte =>
-    );
+    sim_uart_from_UUT : process(w_clk)
+        variable active_state : integer := 0;
+        counter := 0;
+    begin
+        if rising_edge(w_clk) then
+            if w_response_dv = '1' and active_state = '0' then
+                active_state := '1';
+                r_response_data <= w_response;
+                counter := 0;
+            elsif active_state = '1' then
+                if counter = 10*c_clk_per_bit - 1 then
+                    active_state := '0';
+                else 
+                    counter := counter + 1;
+                end if;
+            end if;
+        end if;
+        r_tx_active <= active_state;
+    end process;
 
-    uart_tx : entity work.uart_tx
-    port map (
-        i_clk => w_clk,
-        i_tx_dv =>
-        i_tx_byte =>
-        o_tx_active =>
-        o_tx_serial =>
-        o_tx_done =>
-    );
+            
 
-    process
+
+    uut : process
     begin
         Report "Starting Memory Loader Test";
         wait until rising_edge(w_clk);
