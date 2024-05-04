@@ -17,7 +17,7 @@ ghdl -e --std=08 -fsynopsys -v memory_loader_tb
 
 echo "Running Test Bench"
 #run
-ghdl -r --std=08 -fsynopsys -v memory_tb --stop-time=10000000ns --vcd=memory_loader_tb.vcd
+ghdl -r --std=08 -fsynopsys -v memory_loader_tb --stop-time=10000000ns --vcd=memory_loader_tb.vcd
 
 
 
