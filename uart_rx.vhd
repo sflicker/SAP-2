@@ -17,13 +17,14 @@ use IEEE.NUMERIC_STD.ALL;
 -- after 8 databits serial line will be high for one stop bit.
 entity UART_RX is 
     generic (
+        ID : string := "UART_RX";
         g_CLKS_PER_BIT : integer := 10416         -- (for basys3 100mhz / 9600)
     );
     port(
         i_clk : in STD_LOGIC;                           -- input clock
         i_rx_serial : in STD_LOGIC;                     -- input serial bit
-        o_rx_dv : out STD_LOGIC;                        -- output data valid bit. high after succcessfully byte for one clock cycle
-        o_rx_byte : out STD_LOGIC_VECTOR(7 downto 0)    -- output received byte
+        o_rx_dv : out STD_LOGIC := '0';                        -- output data valid bit. high after succcessfully byte for one clock cycle
+        o_rx_byte : out STD_LOGIC_VECTOR(7 downto 0) := (others => '0')    -- output received byte
     );
 end  UART_RX;
 
@@ -45,7 +46,7 @@ begin
                     r_bit_index <= 0;
 
                     if i_rx_serial = '0' then           -- low for start 
-                        Report "Start bit detected entering start state";
+                        Report "ID: " & ID & " - Start bit detected entering start state";
                         r_state <= s_start;
                     else 
                         r_state <= s_idol;
@@ -54,11 +55,11 @@ begin
                 when s_start =>
                     if r_clk_count = (g_CLKS_PER_BIT)/2 then   -- if half period is reached sample the line to verify start
                         if i_rx_serial = '0' then               -- transistion to rx_byte_bits state
-                            Report "Verified Start Bit Moving to Receive byte";
+                            Report "ID: " & ID & " - Verified Start Bit Moving to Receive byte";
                             r_clk_count <= 0;
                             r_state <= s_rx_byte_bits;
                         else 
-                            Report "False start moving back to idol";
+                            Report "ID: " & ID & " - False start moving back to idol";
                             r_state <= s_idol;                  -- if sample is high this was a false start so go back to idol
                         end if;
                     else                                        -- if not at sample point increment counter and stay in state
@@ -73,12 +74,12 @@ begin
                     else 
                         r_clk_count <= 0;
                         r_rx_byte(r_bit_index) <= i_rx_serial;  -- save bit at bit index position
-                        Report "Received Bit - " & to_string(i_rx_serial);
+                        Report "ID: " & ID & " - Received Bit - " & to_string(i_rx_serial);
                         if r_bit_index < 7 then                 -- if not at end of byte increment the bit_index and continue
                             r_bit_index <= r_bit_index + 1;
                             r_state <= s_rx_byte_bits;
                         else 
-                            Report "Finished receiving bits moving to stop";
+                            Report "ID: " & ID & " - Finished receiving bits moving to stop";
                             r_bit_index <= 0;                   -- assembled a full byte move to the stop state
                             r_state <= s_stop;
                         end if;
@@ -89,14 +90,14 @@ begin
                         r_clk_count <= r_clk_count + 1;
                         r_state <= s_stop;
                     else 
-                        Report "Finished Stop state moving to cleanup";
+                        Report "ID: " & ID & " - Finished Stop state moving to cleanup";
                         r_rx_dv <= '1';
                         r_clk_count <= 0;
                         r_state <= s_cleanup;
                     end if;
 
                 when s_cleanup =>                       -- cleanup for 1 cycle
-                    Report "Cleaning up then move back to idol";
+                    Report "ID: " & ID & " - Finished Receiving byte: " & to_string(r_rx_byte) & ". Cleaning up then move back to idol";
                     r_rx_dv <= '0';
                     r_state <= s_idol;
 

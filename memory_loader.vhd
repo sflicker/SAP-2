@@ -10,7 +10,8 @@ entity memory_loader is
         i_rx_data : in STD_LOGIC_VECTOR(7 downto 0);        -- receive a byte of data 
         i_rx_data_dv : in STD_LOGIC;                        -- byte of data is available to receive.
         i_tx_response_active : in STD_LOGIC;                -- response transmitter is active
-        o_tx_response : out STD_LOGIC_VECTOR(7 downto 0);   -- response byte to transmit
+        i_tx_response_done : in STD_LOGIC; 
+        o_tx_response_data : out STD_LOGIC_VECTOR(7 downto 0);   -- response byte to transmit
         o_tx_response_dv : out STD_LOGIC;                   -- response byte is ready to transmit
         o_wrt_mem_addr : out STD_LOGIC_VECTOR(15 downto 0); -- address of mem to write
         o_wrt_mem_data : out STD_LOGIC_VECTOR(7 downto 0);  -- byte of data to write to mem
@@ -51,8 +52,8 @@ begin
                     r_rx_total <= (others => '0');
                     r_checksum <= (others => '0');
                     r_state <= s_idle;
-                    o_response <= (others => '0');
-                    o_response_dv <= '0';
+                    o_tx_response_data <= (others => '0');
+                    o_tx_response_dv <= '0';
                 when s_idle =>
                     if i_rx_data_dv = '1' then     -- only receive if data valid 
                         if i_rx_data = c_load_str(r_index) then
@@ -67,6 +68,7 @@ begin
                 when s_rx_start =>
                     if i_rx_data_dv = '1' then
                         if i_rx_data = c_load_str(r_index) then
+                            r_data <= i_rx_data;
                             if r_index = c_load_str'length-1 then
                                 r_index <= 0;
                                 r_state <= s_tx_start_resp;
@@ -81,9 +83,7 @@ begin
                     end if;
                 
                 when s_tx_start_resp =>
-                    if i_tx_active = '0' then   -- only transmit is upstream is not active
-                        o_response <= c_ready_str(r_index);
-                        o_response_dv <= '1';
+                    if i_tx_response_done = '1' then
                         if r_index = c_ready_str'length-1 then
                             r_index <= 0;
                             r_state <= s_rx_total;
@@ -91,8 +91,21 @@ begin
                             r_index <= r_index + 1;
                             r_state <= s_tx_start_resp;
                         end if;
+                    elsif i_tx_response_active = '0' then   -- only transmit is upstream is not active
+                        Report "Sending Start Response Byte " & to_string(r_index) & ", " & to_string(c_ready_str(r_index));
+                        o_tx_response_data <= c_ready_str(r_index);
+                        o_tx_response_dv <= '1';
+                        r_state <= s_tx_start_resp;
+                        -- if r_index = c_ready_str'length-1 then
+                        --     r_index <= 0;
+                        --     r_state <= s_rx_total;
+                        -- else
+                        --     r_index <= r_index + 1;
+                        --     r_state <= s_tx_start_resp;
+                        -- end if;
                     else
-                        o_response_dv <= '0';
+                        o_tx_response_dv <= '0';
+                        r_state <= s_tx_start_resp;
                     end if;
 
                 when s_rx_total =>
@@ -156,15 +169,15 @@ begin
                     end if;
 
                 when s_tx_checksum =>
-                    if i_tx_active = '0' then
-                        o_response <= std_logic_vector(r_checksum);
+                    if i_tx_response_active = '0' then
+                        o_tx_response_data <= std_logic_vector(r_checksum);
                         r_state <= s_cleanup;
                     else
                         r_state <= s_tx_checksum;
                     end if;
 
                 when s_cleanup =>
-                    o_response <= (others => '0');
+                    o_tx_response_data <= (others => '0');
                     r_state <= s_init;
             end case;
         end if;
