@@ -42,6 +42,7 @@ begin
     r_state_pos <= t_state'POS(r_state);
 
     p_memory_loader : process(i_clk, i_reset)
+        variable v_start_addr : std_logic_vector(15 downto 0) := (others => '0');
     begin
         if i_reset = '1' then
             r_state <= s_init;
@@ -50,6 +51,7 @@ begin
                 when s_init => 
                     r_index <= 0;
                     r_counter <= (others => '0');
+                    v_start_addr := (others => '0');
                     r_addr <=  (others => '0');
                     r_data <= (others => '0');
                     r_rx_start_addr <= (others => '0');
@@ -134,27 +136,29 @@ begin
                 when s_rx_start_addr =>
                     if i_rx_data_dv = '1' then
                         if r_index = 0 then
-                            r_addr(7 downto 0) <= i_rx_data;
+                            v_start_addr(7 downto 0) := i_rx_data;
                             r_checksum <= r_checksum xor unsigned(i_rx_data);
                             r_index <= r_index + 1;
                             r_state <= s_rx_start_addr;
                             r_counter <= r_counter + 1;
                         elsif r_index = 1 then
-                            r_addr(15 downto 8) <= i_rx_data;
+                            v_start_addr(15 downto 8) := i_rx_data;
+                            r_rx_start_addr <= v_start_addr;
+                            r_addr <= v_start_addr;
                             r_checksum <= r_checksum xor unsigned(i_rx_data);
                             r_index <= 0;
                             r_state <= s_rx_data;
                             r_counter <= r_counter + 1;
                         end if;
                     else
-                        r_state <= s_rx_total;
+                        r_state <= s_rx_start_addr;
                     end if;
 
                 when s_rx_data =>
                     if i_rx_data_dv = '1' then
                         r_data <= i_rx_data;
                         r_checksum <= r_checksum xor unsigned(i_rx_data);
-                        r_counter <= r_counter + 1;
+                    --    r_counter <= r_counter + 1;
                         r_state <= s_wrt_data;
                         o_wrt_mem_addr <= r_addr;
                         o_wrt_mem_data <= i_rx_data;
