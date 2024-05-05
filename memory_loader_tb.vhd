@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use std.textio.all;
 
 entity memory_loader_tb is
 end memory_loader_tb;
@@ -39,6 +40,13 @@ architecture behavioral of memory_loader_tb is
 
     constant c_load_str : t_byte_array := (x"4C", x"4F", x"41", x"4D");
     constant c_ready_str : t_byte_array := (x"52", x"45", x"41", x"44", x"59");
+    signal program_bytes : t_byte_array(0 to 4096);
+    signal program_size : unsigned(15 downto 0);
+    signal total_size : unsigned(15 downto 0);
+    signal program_size_bytes : t_byte_array(0 to 1);
+    signal program_addr : t_byte_array(0 to 1);
+    signal r_checksum : unsigned(7 downto 0) := (others => '0');
+    signal r_checksum_bytes : t_byte_array(0 to 0);
 
     procedure wait_cycles(signal clk : in std_logic; cycles : in natural) is
     begin
@@ -47,15 +55,37 @@ architecture behavioral of memory_loader_tb is
         end loop;
     end procedure wait_cycles;
 
-    procedure send_load_command_str(
-        signal clk : in std_logic; 
+    procedure load_program_bytes(constant file_name : String;
+            signal data_size : out unsigned(15 downto 0);
+            signal data_bytes : out t_byte_array
+        ) is
+        File f : TEXT OPEN READ_MODE is file_name;
+        variable l : LINE;
+        variable data_in : std_logic_vector(7 downto 0);
+        variable pos : integer := 0;
+        variable data : std_logic_vector(7 downto 0);
+    begin 
+        while not endfile(f) loop
+            readline(f, l);
+            bread(l, data_in);
+            data_bytes(pos) <= data_in;
+            pos := pos + 1;
+        end loop;
+        data_size <= unsigned(to_unsigned(pos, 16));
+        wait for 0 ns;
+    end; 
+
+    procedure send_bytes_to_loader (
+        signal clk : in std_logic;
+        constant data_size : in integer;
+        constant data : in t_byte_array; 
         signal tx_data : out std_logic_vector(7 downto 0);
         signal tx_data_dv : out std_logic;
         signal tx_active : in STD_LOGIC) is
     begin
-        for i in 0 to c_load_str'length-1 loop
-            Report "Sending byte: " & to_string(c_load_str(i));
-            tx_data <= c_load_str(i);
+        for i in 0 to data_size -1 loop
+            Report "Sending byte: " & to_string(data(i));
+            tx_data <= data(i);
             tx_data_dv <= '1';
             wait until tx_active = '1';
             Report "Transmitter is reporting Active";
@@ -69,26 +99,40 @@ architecture behavioral of memory_loader_tb is
         end loop;
     end;
 
-    procedure receive_load_command_response_str(
+    procedure receive_and_validate_bytes (
         signal clk : in std_logic;
+        constant valid_data_size : in integer;
+        constant valid_data : in t_byte_array; 
         signal response_data : in std_logic_vector(7 downto 0);
-        signal response_dv : in std_logic;
-        signal success : out STD_LOGIC
+        signal response_dv : in std_logic
     ) is
     begin
-        for i in 0 to c_ready_str'length -1 loop
-            if rising_edge(clk) and response_dv = '1' then
-                if response_data = c_ready_str(i) then
-                    Report "Successfully matched reply byte " & to_string(i) & " - " & to_string(c_ready_str(i));
-                    success <= '1';
-                else
-                    Report "Failed to match reply byte " & to_string(i) & ", " & to_string(c_ready_str(i));
-                    success <= '0';
-                end if;
-                wait until response_dv = '0';
-            end if;
-            Report "Finished trying to match reply bytes";
+        Report "Receiving and Validating " & to_string(valid_data_size) & " bytes.";
+        for i in 0 to valid_data_size - 1 loop
+            wait until response_dv = '1';
+            Report "Receiving Bytes - response_dv: " & to_string(response_dv) & 
+                ", " & to_string(response_data) & 
+                ", i: " & to_string(i) & ", valid_data(i): " & to_string(valid_data(i));
+            Assert response_data = valid_data(i) report "Incorrect Value" severity error;
+            wait until response_dv = '0';
         end loop;
+        Report "Finished matching reply bytes.";
+    end;
+
+    procedure checksum_bytes(
+        constant data_size : in integer;
+        constant data : in t_byte_array; 
+        signal checksum : inout unsigned(7 downto 0)
+    ) is
+    begin
+        Report "Checksum=" & to_string(checksum);
+        for i in 0 to data_size - 1 loop
+            Report "i=" & to_string(i) & ", Applying " & to_string(unsigned(data(i))) & " to checksum";
+            checksum <= checksum xor unsigned(data(i));
+            wait for 0 ns;
+            Report "Checksum=" & to_string(checksum);
+        end loop;
+        Report "Checksum=" & to_string(checksum);
     end;
 
 begin
@@ -166,10 +210,44 @@ begin
     uut : process
     begin
         Report "Starting Memory Loader Test";
+        load_program_bytes("test_program_1.txt", program_size, program_bytes);
         wait until rising_edge(w_clk);
-        send_load_command_str(w_clk, r_tb_tx_byte, r_tb_tx_dv, w_tb_tx_active);
+        send_bytes_to_loader(w_clk, c_load_str'length, c_load_str, r_tb_tx_byte, r_tb_tx_dv, w_tb_tx_active);
+        receive_and_validate_bytes(w_clk, c_ready_str'length, c_ready_str, w_to_tb_rx_byte, w_to_tb_rx_dv);
+        
+        total_size <= program_size + 4;
+        wait for 0 ns;
+        program_size_bytes(0) <= std_logic_vector(total_size(7 downto 0));
+        program_size_bytes(1) <= std_logic_vector(total_size(15 downto 8));
+        wait for 0 ns;
+    
+--        send_bytes_to_loader(w_clk, 2, program_size_bytes, r_tb_tx_byte, r_tb_tx_dv, w_tb_tx_active);
+        
+        program_addr(0) <= (others => '0');
+        program_addr(1) <= "00100000";
 
-        receive_load_command_response_str(w_clk, w_to_tb_rx_byte, w_to_tb_rx_dv, r_success);
+        wait for 0 ns;
+        -- send total size as byte array to loader
+        send_bytes_to_loader(w_clk, 2, program_size_bytes, r_tb_tx_byte, r_tb_tx_dv, w_tb_tx_active);
+        checksum_bytes(2, program_size_bytes, r_checksum);
+
+        wait for 0 ns;
+        -- send address to as byte array to loader
+        send_bytes_to_loader(w_clk, 2, program_addr, r_tb_tx_byte, r_tb_tx_dv, w_tb_tx_active);
+        checksum_bytes(2, program_addr, r_checksum);
+
+        wait for 0 ns;
+        -- send program as byte array to loader
+        send_bytes_to_loader(w_clk, to_integer(program_size), program_bytes, r_tb_tx_byte, r_tb_tx_dv, w_tb_tx_active);
+        checksum_bytes(to_integer(program_size), program_bytes, r_checksum);
+        -- receive checksum
+        wait for 0 ns;
+        Report "Checksum calculated by Test Bench=" & to_string(r_checksum);
+
+        r_checksum_bytes(0) <= std_logic_vector(r_checksum);
+        wait for 0 ns;
+        receive_and_validate_bytes(w_clk, r_checksum_bytes'length, r_checksum_bytes, w_to_tb_rx_byte, w_to_tb_rx_dv);
+
         -- wait on w_response_dv = '1';
         -- r_response_data <= w_response;
         -- r_tx_active <= '1';
