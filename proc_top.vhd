@@ -470,11 +470,11 @@ begin
         generate  
             display_controller : entity work.display_controller
             port map(
-               clk => clk_disp_refresh_1KHZ_sig,
-               rst => clr_sig,
-               data_in => display_data,
-               anodes_out => s7_anodes_out,
-               cathodes_out => s7_cathodes_out
+               i_clk => clk_disp_refresh_1KHZ_sig,
+               i_rst => clr_sig,
+               i_data => display_data,
+               o_anodes => s7_anodes_out,
+               o_cathodes => s7_cathodes_out
            );
        end generate;                        
 

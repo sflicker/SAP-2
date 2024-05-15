@@ -49,16 +49,16 @@ ghdl -e --std=08 -fsynopsys -v proc_top_filebased_tb
 
 echo "Running Test Bench"
 #run
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="test_program_1.txt" --stop-time=100000ns --vcd=test_program_1.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="load_accumulator_test.txt" --stop-time=20000ns --vcd=load_accumulator_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="store_accumulator_test.txt" --stop-time=20000ns --vcd=store_accumulator_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="mvi_test.txt" --stop-time=20000ns --vcd=mvi_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="jump_test.txt" --stop-time=20000ns --vcd=jump_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="loop_test.txt" --stop-time=100000ns --vcd=loop_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="loop_test_with_output.txt" --stop-time=150000ns --vcd=loop_test_with_output.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="out_test.txt" --stop-time=10000ns --vcd=out_test.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="out_test2.txt" --stop-time=10000ns --vcd=out_test2.vcd
-ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="call_test.txt" --stop-time=250000ns --vcd=call_test.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="test_program_1.txt" --stop-time=100000ns --vcd=proc_top_test_program_1.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="load_accumulator_test.txt" --stop-time=20000ns --vcd=proc_top_load_accumulator_test.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="store_accumulator_test.txt" --stop-time=20000ns --vcd=proc_top_store_accumulator_test.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="mvi_test.txt" --stop-time=20000ns --vcd=proc_top_mvi_test.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="jump_test.txt" --stop-time=20000ns --vcd=proc_top_jump_test.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="loop_test.txt" --stop-time=100000ns --vcd=proc_top_loop_test.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="loop_test_with_output.txt" --stop-time=proc_top_150000ns --vcd=loop_test_with_output.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="out_test.txt" --stop-time=10000ns --vcd=proc_top_out_test.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="out_test2.txt" --stop-time=10000ns --vcd=proc_top_out_test2.vcd
+ghdl -r --std=08 -fsynopsys -v proc_top_filebased_tb -gfile_name="call_test.txt" --stop-time=250000ns --vcd=proc_top_call_test.vcd
 
 
 

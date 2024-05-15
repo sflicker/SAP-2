@@ -62,7 +62,7 @@ begin
 
 clock : entity work.clock
     port map(
-        clk => clk_sig
+        o_clk => clk_sig
     );
     
 file_based_test : process
